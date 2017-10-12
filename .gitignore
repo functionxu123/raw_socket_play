@@ -1,5 +1,8 @@
-*.×
-!*.c
-!*.cpp
-!*.h
-!README.md
+*.cbp
+*.layout
+/bin/
+/debug/
+/obj/
+*.depend
+
+
