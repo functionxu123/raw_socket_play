@@ -198,7 +198,7 @@ int send_arp() {
 
     return 0;
 }
-
+/*
 int main() {
     char p[100];
     get_IP_MAC(p, 100, NULL, 0);
@@ -213,3 +213,4 @@ int main() {
 
     return 0;
 }
+*/

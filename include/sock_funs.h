@@ -1,3 +1,6 @@
+#ifndef SOCK_FUNS_H_MY
+#define SOCK_FUNS_H_MY
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,7 +45,7 @@ typedef struct my_arp{
 }my_arp;
 
 
-typedef my_ip{
+typedef struct my_ip{
     uint8_t ver_hdlen;//version and head length
     uint8_t ser_type;//service type
     uint16_t full_len;//full length of this packet
@@ -55,7 +58,7 @@ typedef my_ip{
     uint32_t des_ip;
 }my_ip;
 
-typedef my_tcp{
+typedef struct my_tcp{
     uint16_t src_port;
     uint16_t des_port;
     uint32_t tcp_sequ;//tcp sequence
@@ -68,6 +71,13 @@ typedef my_tcp{
 
 #pragma pack ()//取消自定义字节对齐方式
 
+typedef struct {//pc's para
+    char ip[32];
+    char mac[mac_len];
+    int index;
+    char card_name[IFNAMSIZ];
+}local_conf;
+
 int get_IP_MAC( char *ip,int ip_l,char *mac,int mac_l) ;//返回的IP地址为字符串型："192.168.1.1",返回Mac为6个char
 
 int fill_mac_arp(my_mac *p);
@@ -75,3 +85,7 @@ int fill_mac_arp(my_mac *p);
 int fill_arp(my_arp*p);
 
 void getandparse_arp();
+
+
+
+#endif
