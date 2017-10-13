@@ -4,7 +4,7 @@ sock_base::sock_base(int AF, int type, int proto) {
     socket_m = -1;
 
     //ctor
-    socket_m = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+    socket_m = socket(AF, type, proto);
     if (socket_m == -1) {
         perror("sock_base:create socket error!");
         exit(1);

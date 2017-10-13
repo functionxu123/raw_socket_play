@@ -1,6 +1,6 @@
 #include "sock_tcp.h"
 
-sock_tcp::sock_tcp():sock_trans(AF_INET)
+sock_tcp::sock_tcp():sock_trans(SOCK_STREAM)
 {
     //ctor
 }

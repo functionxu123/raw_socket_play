@@ -15,9 +15,9 @@ public:
     void setsocket(int p);
 
 protected:
-
+   int socket_m;
 private:
-    int socket_m;
+
 };
 
 #endif // SOCK_BASE_H

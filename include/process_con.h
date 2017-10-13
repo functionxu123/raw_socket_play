@@ -8,6 +8,7 @@ class process_con
     public:
         process_con();
         virtual int operator()(int socket, struct sockaddr_in ad);
+        virtual int operator()(int socket, struct sockaddr_in ad,char *p,int len);
         virtual ~process_con();
 
     protected:

@@ -12,15 +12,19 @@
     connect(sock_fd, (struct sockaddr *)&ser_addr, sizeof(ser_addr))
 */
 
-class tcp_client : public sock_tcp
-{
-    public:
-        tcp_client();
-        virtual ~tcp_client();
+class tcp_client : public sock_tcp {
+public:
+    tcp_client(char *ip, int p);
+    tcp_client(uint32_t ip, int p);
+    int connect_ser();
+    int recv_ser(char *p,int len, int flag=0);
+    int send_ser(char *p, int len, int f=0);
+    virtual ~tcp_client();
 
-    protected:
+protected:
 
-    private:
+private:
+    struct sockaddr_in server_addr;
 };
 
 #endif // TCP_CLIENT_H

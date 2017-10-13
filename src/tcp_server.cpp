@@ -25,6 +25,7 @@ int tcp_server::bind_addr(sockaddr_in *p) {
 int tcp_server::start_listen(int num) {
     if(listen(get_socket(), num) < 0) {
         perror("tcp_server:listen error!");
+        printf ("error %d\n",errno);
         return -1;
     }
     return 0;
