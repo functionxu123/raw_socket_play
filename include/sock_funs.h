@@ -15,10 +15,12 @@
 #include <net/if.h>
 #include <netpacket/packet.h>
 
+
 #define max_ether_len ( 2048)
 #define mac_len   ( 6)
 #define ip_len (4)
 
+#define MAX_LISTEN_NUM (5)
 
 #define BROADCAST_ADDR  {0xff,0xff,0xff,0xff,0xff,0xff}
 

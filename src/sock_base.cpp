@@ -76,6 +76,13 @@ int sock_base::get_local_info( local_conf p[]) {
 }
 
 
+int sock_base::get_socket() {
+    return socket_m;
+}
+void sock_base::setsocket(int p) {
+    socket_m = p;
+}
+
 sock_base::~sock_base() {
     //dtor
     if (socket_m > 0) {
