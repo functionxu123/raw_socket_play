@@ -3,9 +3,10 @@
 
 #include <sock_udp.h>
 #include <process_con.h>
+#include <server_ops.h>
 
 
-class udp_server : public sock_udp
+class udp_server : public sock_udp,private server_ops
 {
     public:
         udp_server(int p);
@@ -19,7 +20,7 @@ class udp_server : public sock_udp
     protected:
 
     private:
-        struct sockaddr_in host_addr;
+        //struct sockaddr_in host_addr;
 };
 
 #endif // UDP_SERVER_H

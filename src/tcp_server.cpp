@@ -1,10 +1,7 @@
 #include "tcp_server.h"
 
-tcp_server::tcp_server(int port): sock_tcp() {
+tcp_server::tcp_server(int port): sock_tcp() ,server_ops(port){
     //ctor
-    host_addr.sin_family = AF_INET;
-    host_addr.sin_port = htons(port);
-    host_addr.sin_addr.s_addr = htonl(INADDR_ANY);//server
 }
 
 int tcp_server::bind_addr() {

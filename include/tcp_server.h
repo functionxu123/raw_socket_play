@@ -3,13 +3,14 @@
 
 #include <sock_tcp.h>
 #include "process_con.h"
+#include <server_ops.h>
 /*
   hostaddr.sin_family = AF_INET;
   hostaddr.sin_port = htons(LISTEN_PORT);
   hostaddr.sin_addr.s_addr = htonl(INADDR_ANY);//server
 */
 
-class tcp_server : public sock_tcp
+class tcp_server : public sock_tcp,private server_ops
 {
     public:
         tcp_server(int port);
@@ -24,7 +25,7 @@ class tcp_server : public sock_tcp
     protected:
 
     private:
-        struct sockaddr_in host_addr;
+        //struct sockaddr_in host_addr;
 };
 
 #endif // TCP_SERVER_H
