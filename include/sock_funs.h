@@ -20,6 +20,7 @@
 #define max_ether_len ( 2048)
 #define mac_len   ( 6)
 #define ip_len (4)
+#define max_card_num (10)
 
 #define MAX_LISTEN_NUM (2)
 
@@ -76,10 +77,14 @@ typedef struct my_tcp{
 
 typedef struct {//pc's para
     char ip[32];
+    char mask[32];
     char mac[mac_len];
     int index;
     char card_name[IFNAMSIZ];
 }local_conf;
+
+static int local_conf_valid=0;
+static local_conf local[max_card_num];
 
 int get_IP_MAC( char *ip,int ip_l,char *mac,int mac_l) ;//返回的IP地址为字符串型："192.168.1.1",返回Mac为6个char
 

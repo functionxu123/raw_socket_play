@@ -9,6 +9,10 @@ sock_base::sock_base(int AF, int type, int proto) {
         perror("sock_base:create socket error!");
         exit(1);
     }
+
+    if(!local_conf_valid) {
+        local_conf_valid =get_local_info(local);
+    }
 }
 
 int sock_base::get_local_info( local_conf p[]) {
@@ -65,6 +69,15 @@ int sock_base::get_local_info( local_conf p[]) {
                     strcpy(  (p[count]).ip,   src_ip);
                     //printf("local ip:%s\n", src_ip);
                 }
+                //SIOCGIFNETMASK mask
+                if(ioctl(sock, SIOCGIFNETMASK, &ifr) >= 0) {
+                    char *mas_tep = inet_ntoa(((struct sockaddr_in*) & (ifr.ifr_netmask))->sin_addr);
+                    strcpy(p[count].mask, mas_tep);
+                } else {
+                    perror("    ioctl SIOCGIFNETMASK error");
+                    return -1;
+                }
+
                 count++;
             }
         } else {
@@ -80,8 +93,10 @@ int sock_base::get_socket() {
     return socket_m;
 }
 void sock_base::setsocket(int p) {
+    if (socket_m > 0) close(socket_m);
     socket_m = p;
 }
+
 
 sock_base::~sock_base() {
     //dtor

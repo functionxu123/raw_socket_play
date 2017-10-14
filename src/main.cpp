@@ -9,12 +9,16 @@ int main(){
     s.start_listen();
     s.accept_block();
     */
-    char *p="127.0.0.1";
-    tcp_client t(p,6789);
+    char *ip="127.0.0.1";
+    tcp_client t(ip,6789);
+    /*
     t.connect_ser();
     while (1) {
             t.send_ser(p,10);
             sleep(1);
     }
+    */
+
+   printf ("ip:%s\n",local[0].ip);
     return 0;
 }
