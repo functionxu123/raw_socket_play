@@ -8,6 +8,8 @@ class mac_all : public sock_mac {
 public:
     mac_all();
     int recv_all(char *buf, int flag=0);
+
+
     virtual ~mac_all();
 
 protected:

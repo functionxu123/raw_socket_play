@@ -17,9 +17,7 @@ void sock_mac::form_machd ( my_mac *mac, char *src, char *des,  uint16_t type ) 
     }
 
     if ( src == NULL ) {
-        local_conf tp;
-        get_local_info ( &tp );
-        memcpy ( mac->src, tp.mac, mac_len );
+        memcpy ( mac->src, local[local_conf_valid-1].mac, mac_len );
     } else {
         memcpy ( mac->src, src, mac_len );
     }

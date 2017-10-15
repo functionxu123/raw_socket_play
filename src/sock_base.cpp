@@ -104,7 +104,81 @@ void sock_base::setsocket(int p) {
     socket_m = p;
 }
 
+uint16_t sock_base::checksum(uint16_t* buffer, int size) { //this size is char size
+    unsigned long cksum = 0;
+//每16位相加
+    while(size > 1)    {
+        cksum += *buffer++;
+        size -= sizeof(uint16_t);
+    }
+//最后的奇数字节
+    if(size)    {
+        cksum += *(uint8_t*)buffer;
+    }
+    cksum = (cksum >> 16) + (cksum & 0xffff); //将高16bit与低16bit相加
+    cksum += (cksum >> 16);                           //将进位到高位的16bit与低16bit 再相加,确保高16位为0
+    return (uint16_t)(~cksum); //最后将结果取反,得到checksum
+}
 
+
+/*
+
+typedef struct my_ip{
+    uint8_t ver_hdlen;//version and head length
+    uint8_t ser_type;//service type
+    uint16_t full_len;//full length of this packet
+    uint16_t group_id;//
+    uint16_t tag_seg;//tag(3) and differ of segment(13)
+    uint8_t timetolive;//
+    uint8_t super_proto;//
+    uint16_t check_sum;
+    uint32_t src_ip;
+    uint32_t des_ip;
+}my_ip;
+*/
+void sock_base::form_ip(my_ip *ip, int datalen, int proto,  char *desip, char *srcip, int head_len, int version) {
+    bzero(ip, sizeof(my_ip));
+    ip->ver_hdlen = (version << 4 | sizeof(my_ip) / sizeof(unsigned long));
+    ip->full_len = htons(datalen + head_len);
+    ip->group_id = 1; //
+    ip->timetolive = 64;
+    ip->super_proto = proto & 0xff;
+    ip->des_ip = inet_addr(desip);
+    if (srcip == NULL) {
+        ip->src_ip = inet_addr(local[local_conf_valid - 1].ip);
+    } else {
+        ip->src_ip = inet_addr(srcip);
+    }
+    ip->check_sum = checksum((uint16_t*)ip, sizeof(my_ip));
+}
+
+
+void sock_base::form_tcp(my_tcp *tcp, char *data, int data_len, char *src_ip, char *des_ip, int src_port, int des_port, int seq, int ack, char flag,  int hd_len, int win_size) {
+    bzero(tcp, sizeof(my_tcp));
+
+    tcp->des_port = htons(des_port);
+    tcp->src_port = htons(src_port);
+
+    tcp->hdlen_flag = (hd_len / 4 << 12 | flag);
+    tcp->winsize = htons(win_size);
+    tcp->ack = htonl(ack);
+    tcp->tcp_sequ = htonl(seq);
+
+    char bu[max_ether_len];
+    bzero(bu, sizeof(bu));
+
+    fake_hd * fh = (fake_hd*)bu;
+    fh->proto = IPPROTO_TCP;
+    fh->tcp_len =htons(hd_len+data_len);
+    fh->src_ip=inet_addr(src_ip);
+    fh->des_ip=inet_addr(des_ip);
+
+
+    memcpy(bu+sizeof(fake_hd), tcp, sizeof(my_tcp));
+    memcpy(bu+sizeof(fake_hd)+sizeof(my_tcp), data, data_len);
+
+    tcp->check_sum=checksum((uint16_t*)bu, sizeof(fake_hd)+sizeof(my_tcp)+data_len);
+}
 sock_base::~sock_base() {
     //dtor
     if (socket_m > 0) {

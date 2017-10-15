@@ -73,6 +73,14 @@ typedef struct my_tcp{
     uint16_t urge;//if urge
 }my_tcp;
 
+typedef struct fake_hd{
+    uint32_t src_ip;
+    uint32_t des_ip;
+    uint8_t zero;
+    uint8_t proto;
+    uint16_t tcp_len;
+}fake_hd;
+
 #pragma pack ()//取消自定义字节对齐方式
 
 typedef struct {//pc's para
