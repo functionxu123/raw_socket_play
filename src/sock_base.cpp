@@ -1,5 +1,8 @@
 #include "sock_base.h"
 
+int sock_base::local_conf_valid = 0; //这是因为类的静态成员变量在使用前必须先初始化。
+local_conf sock_base::local[max_card_num];
+
 sock_base::sock_base(int AF, int type, int proto) {
     socket_m = -1;
 
@@ -11,7 +14,11 @@ sock_base::sock_base(int AF, int type, int proto) {
     }
 
     if(!local_conf_valid) {
-        local_conf_valid =get_local_info(local);
+        local_conf_valid = get_local_info(local);
+        if (local_conf_valid <= 0) {
+            perror("There is no network card available!");
+            exit(1);
+        }
     }
 }
 

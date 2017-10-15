@@ -4,16 +4,22 @@
 #include <sock_base.h>
 
 
-class sock_mac : public sock_base
-{
-    public:
-        sock_mac(int proto);
-        void form_machd(my_mac *mac, uint16_t type=htons(ETHERTYPE_ARP), char *des=NULL, char *src=NULL );
-        virtual ~sock_mac();
+class sock_mac : public sock_base {
+public:
+    sock_mac(int proto);
+    void form_machd(my_mac *mac, char *src = NULL, char *des = NULL,  uint16_t type = htons(ETHERTYPE_ARP) );
 
-    protected:
+    char * rid_mac(char *p, my_mac *mac);
+    char *rid_ip(char *p, my_ip*ip);
+    char *rid_tcp(char *p, my_tcp *tcp);
+    virtual ~sock_mac();
 
-    private:
+
+    struct sockaddr_ll saddr;
+protected:
+
+private:
+
 };
 
 #endif // SOCK_MAC_H
