@@ -169,16 +169,31 @@ void sock_base::form_tcp(my_tcp *tcp, char *data, int data_len, char *src_ip, ch
 
     fake_hd * fh = (fake_hd*)bu;
     fh->proto = IPPROTO_TCP;
-    fh->tcp_len =htons(hd_len+data_len);
-    fh->src_ip=inet_addr(src_ip);
-    fh->des_ip=inet_addr(des_ip);
+    fh->tcp_len = htons(hd_len + data_len);
+    fh->src_ip = inet_addr(src_ip);
+    fh->des_ip = inet_addr(des_ip);
 
 
-    memcpy(bu+sizeof(fake_hd), tcp, sizeof(my_tcp));
-    memcpy(bu+sizeof(fake_hd)+sizeof(my_tcp), data, data_len);
+    memcpy(bu + sizeof(fake_hd), tcp, sizeof(my_tcp));
+    memcpy(bu + sizeof(fake_hd) + sizeof(my_tcp), data, data_len);
 
-    tcp->check_sum=checksum((uint16_t*)bu, sizeof(fake_hd)+sizeof(my_tcp)+data_len);
+    tcp->check_sum = checksum((uint16_t*)bu, sizeof(fake_hd) + sizeof(my_tcp) + data_len);
 }
+
+uint32_t sock_base::local_ipstart() {
+    uint32_t mask = htonl(inet_addr(local[local_conf_valid - 1].mask));
+    uint32_t ip = htonl(inet_addr(local[local_conf_valid - 1].ip));
+    ip &= mask;
+    return ip;
+}
+
+uint32_t sock_base::local_ipend() {
+    uint32_t mask = htonl(inet_addr(local[local_conf_valid - 1].mask));
+    uint32_t ip = htonl(inet_addr(local[local_conf_valid - 1].ip));
+    ip |= (~mask);
+    return ip;
+}
+
 sock_base::~sock_base() {
     //dtor
     if (socket_m > 0) {

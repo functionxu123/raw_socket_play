@@ -13,18 +13,26 @@ int main() {
     //mya.show_arp(&a);
     char * tar="10.137.0.2";
     char *fake_mac=NULL;//"\xac\x45\x89\x90\x45\x7a";
-    uint32_t st = inet_addr(tar);
+   // uint32_t st = inet_addr(tar);
     mya.form_machd(&m,fake_mac);
-
+/*
     while(1) {
         while(st != 0xffffffff) {
             mya.form_arp(&a,"10.137.0.1" , inet_ntoa(*(struct in_addr*)&st), 2, fake_mac);
             mya.send_arp(&m, &a);
             printf("ip:%s\n",inet_ntoa(*(struct in_addr*)&st));
-            st+=0x10000;
+            st=htonl(st);
+            st++;
+            st=htonl(st);
         }
         st = inet_addr(tar);
         //sleep(1);
     }
+    */
+    uint32_t st=htonl(mya.local_ipstart());
+    uint32_t ed=htonl(mya.local_ipend());
+
+    printf("%s \n",inet_ntoa(*(struct in_addr*)&st)  );
+    printf("%s \n",inet_ntoa(*(struct in_addr*)&ed)  );
     return 0;
 }
