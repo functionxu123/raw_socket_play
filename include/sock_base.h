@@ -54,10 +54,15 @@ public:
     void setsocket(int p);
     uint16_t checksum(uint16_t* buffer, int size);//this size is char size
 
-    void form_ip(my_ip *ip, int datalen, int proto,  char *desip, char *srcip=NULL, int head_len=20, int version=4);
-    void form_tcp(my_tcp *tcp, char *data, int data_len, char *src_ip, char *des_ip, int src_port, int des_port, int seq, int ack, char flag, int hd_len=20, int win_size=max_ether_len);
-    uint32_t local_ipstart();
-    uint32_t local_ipend();
+    void form_ip(my_ip *ip, int datalen, int proto,  char *desip, char *srcip = NULL, int head_len = 20, int version = 4);
+    void form_tcp(my_tcp *tcp, char *data, int data_len, char *src_ip, char *des_ip, int src_port, int des_port, int seq, int ack, char flag, int hd_len = 20, int win_size = max_ether_len);
+    uint32_t local_ipstart();//net_sequence
+    uint32_t local_ipend();//net sequence
+    uint32_t getgateway();
+
+    char *rid_ip(char *p, my_ip*ip);
+    char *rid_tcp(char *p, my_tcp *tcp);
+    void my_swap_buffer(char *p1, char *p2, int len);
 
     static int local_conf_valid;//这是因为类的静态成员变量在使用前必须先初始化。
     static local_conf local[max_card_num];
@@ -66,7 +71,7 @@ protected:
 
 
 private:
-   int socket_m;
+    int socket_m;
 
 };
 

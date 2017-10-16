@@ -85,6 +85,8 @@ int sock_base::get_local_info( local_conf p[]) {
                     return -1;
                 }
 
+                p[count].gate=getgateway();
+
                 count++;
             }
         } else {
@@ -119,8 +121,6 @@ uint16_t sock_base::checksum(uint16_t* buffer, int size) { //this size is char s
     cksum += (cksum >> 16);                           //将进位到高位的16bit与低16bit 再相加,确保高16位为0
     return (uint16_t)(~cksum); //最后将结果取反,得到checksum
 }
-
-
 /*
 
 typedef struct my_ip{
@@ -152,7 +152,6 @@ void sock_base::form_ip(my_ip *ip, int datalen, int proto,  char *desip, char *s
     ip->check_sum = checksum((uint16_t*)ip, sizeof(my_ip));
 }
 
-
 void sock_base::form_tcp(my_tcp *tcp, char *data, int data_len, char *src_ip, char *des_ip, int src_port, int des_port, int seq, int ack, char flag,  int hd_len, int win_size) {
     bzero(tcp, sizeof(my_tcp));
 
@@ -180,18 +179,68 @@ void sock_base::form_tcp(my_tcp *tcp, char *data, int data_len, char *src_ip, ch
     tcp->check_sum = checksum((uint16_t*)bu, sizeof(fake_hd) + sizeof(my_tcp) + data_len);
 }
 
-uint32_t sock_base::local_ipstart() {
+uint32_t sock_base::local_ipstart() {//net seq
     uint32_t mask = htonl(inet_addr(local[local_conf_valid - 1].mask));
     uint32_t ip = htonl(inet_addr(local[local_conf_valid - 1].ip));
     ip &= mask;
-    return ip;
+    return htonl(ip);
 }
 
-uint32_t sock_base::local_ipend() {
+uint32_t sock_base::local_ipend() {//net seq
     uint32_t mask = htonl(inet_addr(local[local_conf_valid - 1].mask));
     uint32_t ip = htonl(inet_addr(local[local_conf_valid - 1].ip));
     ip |= (~mask);
-    return ip;
+    return htonl(ip);
+}
+
+char *sock_base::rid_ip(char *p, my_ip*ip) {
+    memcpy(ip, p, sizeof(my_ip));
+
+    return p + ((ip->ver_hdlen) & 0x0f) * 4;
+}
+
+char *sock_base::rid_tcp(char *p, my_tcp *tcp) {
+    memcpy(tcp,p, sizeof(my_tcp));
+    return p + (((tcp->hdlen_flag) & 0xf0)>>2);
+}
+
+uint32_t sock_base::getgateway(){
+    FILE *fp;
+    char buf[512];
+    char cmd[128];
+    char gateway[30];
+    char *tmp;
+
+    strcpy(cmd, "ip route");//run ip route command
+    fp = popen(cmd, "r");
+    if(NULL == fp)
+    {
+        perror("popen error");
+        return -1;
+    }
+    while(fgets(buf, sizeof(buf), fp) != NULL)
+    {
+        tmp =buf;
+        while(*tmp && (*tmp==' ') )
+            ++ tmp;
+        if(strncmp(tmp, "default", strlen("default")) == 0)
+            break;
+    }
+    sscanf(buf, "%*s%*s%s", gateway);
+    //printf("default gateway:%s\n", gateway);
+    pclose(fp);
+
+    return inet_addr(gateway);
+}
+
+void sock_base::my_swap_buffer(char *p1, char *p2, int len){
+    char tep;
+    int i=0;
+    for (i=0;i<len;i++){
+        tep=p1[i];
+        p1[i]=p2[i];
+        p2[i]=tep;
+    }
 }
 
 sock_base::~sock_base() {

@@ -10,8 +10,8 @@ public:
     void form_machd(my_mac *mac, char *src = NULL, char *des = NULL,  uint16_t type = htons(ETHERTYPE_ARP) );
 
     char * rid_mac(char *p, my_mac *mac);
-    char *rid_ip(char *p, my_ip*ip);
-    char *rid_tcp(char *p, my_tcp *tcp);
+
+    void show_mac(my_mac*p);
     virtual ~sock_mac();
 
 

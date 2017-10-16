@@ -4,17 +4,14 @@
 #include <sock_base.h>
 #include <mac_arp.h>
 
+
 int main() {
     mac_arp mya;
     my_mac m;
     my_arp a;
     //mya.recv_arp(&m, &a);
+    char *fake_mac="\xac\x45\x89\x90\x45\x7a";
 
-    //mya.show_arp(&a);
-    char * tar="10.137.0.2";
-    char *fake_mac=NULL;//"\xac\x45\x89\x90\x45\x7a";
-   // uint32_t st = inet_addr(tar);
-    mya.form_machd(&m,fake_mac);
 /*
     while(1) {
         while(st != 0xffffffff) {
@@ -29,10 +26,11 @@ int main() {
         //sleep(1);
     }
     */
-    uint32_t st=htonl(mya.local_ipstart());
-    uint32_t ed=htonl(mya.local_ipend());
 
-    printf("%s \n",inet_ntoa(*(struct in_addr*)&st)  );
-    printf("%s \n",inet_ntoa(*(struct in_addr*)&ed)  );
+    uint32_t tepp=mya.local_ipend();
+    printf("%s\n",inet_ntoa(i2addr_in(tepp)));
+
+
+
     return 0;
 }
