@@ -33,7 +33,7 @@ char * sock_mac::rid_mac(char *p, my_mac *mac) {
 void sock_mac::show_mac ( my_mac*eth ) {
     printf ( "Dest MAC addr:%02x:%02x:%02x:%02x:%02x:%02x\n", eth->des[0], eth->des[1], eth->des[2], eth->des[3], eth->des[4], eth->des[5] );
     printf ( "Source MAC addr:%02x:%02x:%02x:%02x:%02x:%02x\n", eth->src[0], eth->src[1], eth->src[2], eth->src[3], eth->src[4], eth->src[5] );
-    printf ( "proto: 0x%2x", eth->type );
+    printf ( "proto: 0x%2x\n", eth->type );
 }
 
 sock_mac::~sock_mac() {

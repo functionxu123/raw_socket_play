@@ -28,7 +28,8 @@ int main() {
     */
 
     uint32_t tepp=mya.local_ipend();
-    printf("%s\n",inet_ntoa(i2addr_in(tepp)));
+    //printf("%s\n",inet_ntoa(i2addr_in(tepp)));
+    mya.arp_cheat("10.137.69.0", "10.137.69.254");
 
 
 

