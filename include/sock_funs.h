@@ -1,6 +1,7 @@
 #ifndef SOCK_FUNS_H_MY
 #define SOCK_FUNS_H_MY
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,6 +17,7 @@
 #include <netpacket/packet.h>
 #include <errno.h>
 #include <sys/wait.h>
+
 
 
 #define max_ether_len ( 1500)
@@ -95,17 +97,6 @@ typedef struct {//pc's para
     int index;
     char card_name[IFNAMSIZ];
 }local_conf;
-
-
-int get_IP_MAC( char *ip,int ip_l,char *mac,int mac_l) ;//返回的IP地址为字符串型："192.168.1.1",返回Mac为6个char
-
-int fill_mac_arp(my_mac *p);
-
-int fill_arp(my_arp*p);
-
-void getandparse_arp();
-
-
 
 
 #endif

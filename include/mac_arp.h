@@ -2,6 +2,8 @@
 #define MAC_ARP_H
 
 #include <sock_mac.h>
+#include <vector>
+#include <algorithm>
 
 
 class mac_arp : public sock_mac
@@ -26,6 +28,9 @@ class mac_arp : public sock_mac
         uint32_t arp_cheat(char *start=NULL, char *endsss=NULL);
         uint32_t arp_cheat(uint32_t start, uint32_t endd);//net sequence
         uint32_t arp_cheat(uint32_t ip);//net sequence
+
+        int scan_ip_arp(uint32_t st, uint32_t ed, std::vector<uint32_t> &vec);//net seq
+        int scan_ip_arp(std::vector<uint32_t> &vec, char * st=NULL, char * ed=NULL);//net seq
 
         void show_arp(my_arp *p);
         virtual ~mac_arp();

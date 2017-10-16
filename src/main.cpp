@@ -1,8 +1,15 @@
-#include <tcp_client.h>
-#include <tcp_server.h>
+#include<vector>
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
 #include <sock_funs.h>
 #include <sock_base.h>
 #include <mac_arp.h>
+
+
+
+
 
 
 int main() {
@@ -10,7 +17,7 @@ int main() {
     my_mac m;
     my_arp a;
     //mya.recv_arp(&m, &a);
-    char *fake_mac="\xac\x45\x89\x90\x45\x7a";
+    char *fake_mac="\xac\x45\x89\x90\x45\x7a";//194 204
 
 /*
     while(1) {
@@ -29,9 +36,13 @@ int main() {
 
     uint32_t tepp=mya.local_ipend();
     //printf("%s\n",inet_ntoa(i2addr_in(tepp)));
-    mya.arp_cheat("10.137.69.0", "10.137.69.254");
+    //mya.arp_cheat("10.137.194.200", "10.137.194.254");
 
 
+    vector<uint32_t> pr;
 
+    mya.scan_ip_arp(pr, "10.137.194.1", "10.137.194.254");
+    for (vector<uint32_t>::iterator it=pr.begin(); it!=pr.end(); it++)
+        cout<<inet_ntoa(*(in_addr*)&(*it))<<endl;
     return 0;
 }
