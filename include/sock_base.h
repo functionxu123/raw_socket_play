@@ -63,6 +63,7 @@ public:
     char *rid_ip(char *p, my_ip*ip);
     char *rid_tcp(char *p, my_tcp *tcp);
     void my_swap_buffer(char *p1, char *p2, int len);
+    int ip_com(uint32_t a, uint32_t b) ;
 
     static int local_conf_valid;//这是因为类的静态成员变量在使用前必须先初始化。
     static local_conf local[max_card_num];

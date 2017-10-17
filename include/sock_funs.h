@@ -17,6 +17,7 @@
 #include <netpacket/packet.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <time.h>
 
 
 
@@ -32,13 +33,13 @@
 #define i2addr_in(add) (*((struct in_addr*)&add))
 
 #pragma pack (1)//编译器将按照n个字节对齐
-typedef struct my_mac{
+typedef struct my_mac {
     uint8_t des[mac_len];//destination mac address?all 1?
     uint8_t src[mac_len];//source mac address
     uint16_t type;//0x0806->arp; ox0800->ip
-}my_mac;
+} my_mac;
 
-typedef struct my_arp{
+typedef struct my_arp {
     uint16_t hd_type;//harware type:1->ethernet
     uint16_t pro_type;//proto type:0x0800->ip
     uint8_t mac_length;//mac length  6
@@ -51,10 +52,10 @@ typedef struct my_arp{
     uint8_t des_mac[mac_len];//destination mac address:all zero in arp request
     uint32_t des_ip;//destination ip address
 
-}my_arp;
+} my_arp;
 
 
-typedef struct my_ip{
+typedef struct my_ip {
     uint8_t ver_hdlen;//version and head length
     uint8_t ser_type;//service type
     uint16_t full_len;//full length of this packet
@@ -65,9 +66,9 @@ typedef struct my_ip{
     uint16_t check_sum;
     uint32_t src_ip;
     uint32_t des_ip;
-}my_ip;
+} my_ip;
 
-typedef struct my_tcp{
+typedef struct my_tcp {
     uint16_t src_port;
     uint16_t des_port;
     uint32_t tcp_sequ;//tcp sequence
@@ -76,15 +77,15 @@ typedef struct my_tcp{
     uint16_t winsize;//window size
     uint16_t check_sum;//tcp check sum
     uint16_t urge;//if urge
-}my_tcp;
+} my_tcp;
 
-typedef struct fake_hd{
+typedef struct fake_hd {
     uint32_t src_ip;
     uint32_t des_ip;
     uint8_t zero;
     uint8_t proto;
     uint16_t tcp_len;
-}fake_hd;
+} fake_hd;
 
 #pragma pack ()//取消自定义字节对齐方式
 #define ipstr_len 64
@@ -96,7 +97,12 @@ typedef struct {//pc's para
     char mac[mac_len];
     int index;
     char card_name[IFNAMSIZ];
-}local_conf;
+} local_conf;
+
+
+static int com_ip(uint32_t a, uint32_t b){
+    return htonl(a) < htonl(b);
+}
 
 
 #endif
