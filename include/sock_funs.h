@@ -100,9 +100,15 @@ typedef struct {//pc's para
 } local_conf;
 
 
-static int com_ip(uint32_t a, uint32_t b){
-    return htonl(a) < htonl(b);
-}
+typedef struct {
+    uint32_t ip;
+    char mac[mac_len];
+} tar_info;
+
+static int com_ip(tar_info a, tar_info b) {//no reference in c
+    return htonl(a.ip) < htonl(b.ip);
+};
+
 
 
 #endif

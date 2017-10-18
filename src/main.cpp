@@ -8,16 +8,12 @@ using namespace std;
 #include <mac_arp.h>
 
 
-
-
-
-
 int main() {
     mac_arp mya;
     my_mac m;
     my_arp a;
-    char *ip_st="10.137.0.0";
-    char *ip_ed="10.137.225.255";
+    char *ip_st="10.137.0.2";
+    char *ip_ed="10.137.255.254";
     //mya.recv_arp(&m, &a);
     char *fake_mac="\xac\x45\x89\x90\x45\x7a";//194 204
 
@@ -41,14 +37,20 @@ int main() {
     //mya.arp_cheat(ip_st, ip_ed );
 
 
-    vector<uint32_t> pr;
+    vector<tar_info> pr;
 
-    mya.scan_ip_arp(pr);// , ip_st, ip_ed
+    mya.scan_ip_arp(pr, ip_st, ip_ed);//
+    //mya.arp_cheat(ip_st, ip_ed);
 
-    for (vector<uint32_t>::iterator it=pr.begin(); it!=pr.end(); it++)
-        cout<<inet_ntoa(*(in_addr*)&(*it))<<endl;
+    for (vector<tar_info>::iterator it=pr.begin(); it!=pr.end(); it++){
+        cout<<inet_ntoa(*(in_addr*)&((*it).ip))<<":"<<endl;
+        for (int i=0;i<mac_len;i++)
+            printf("%02x:",(*it).mac[i]&0xff);
+        cout<<endl;
+    }
     printf("size:%d\n", pr.size());
 
+    mya.arp_cheat(pr);
 
     return 0;
 }

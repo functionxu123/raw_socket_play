@@ -20,19 +20,19 @@ class mac_arp : public sock_mac
 
         int arp_cheat_send(char *start=NULL, char *endsss=NULL);
         int arp_cheat_send(uint32_t start, uint32_t endd);//net sequence
-        int arp_cheat_send(uint32_t ip);//net sequence
+        int arp_cheat_send(uint32_t ip, char *mac=NULL);//net sequence
 
-        uint32_t arp_cheat_recv(char *start=NULL, char *endsss=NULL);
-        uint32_t arp_cheat_recv(uint32_t start, uint32_t endd);//net sequence
-        uint32_t arp_cheat_recv(uint32_t ip);//net sequence
+        int arp_cheat_recv(char *start=NULL, char *endsss=NULL,tar_info *p=NULL);
+        int arp_cheat_recv(uint32_t start, uint32_t endd, tar_info *p=NULL);//net sequence
+        int arp_cheat_recv(uint32_t ip, tar_info *p=NULL);//net sequence
 
         uint32_t arp_cheat(char *start=NULL, char *endsss=NULL);
         uint32_t arp_cheat(uint32_t start, uint32_t endd);//net sequence
         uint32_t arp_cheat(uint32_t ip);//net sequence
-        uint32_t arp_cheat(std::vector<uint32_t> &vec);
+        uint32_t arp_cheat(std::vector<tar_info> &vec);
 
-        int scan_ip_arp( std::vector<uint32_t> &vec, uint32_t st, uint32_t ed);//net seq
-        int scan_ip_arp(std::vector<uint32_t> &vec, char * st=NULL, char * ed=NULL);//net seq
+        int scan_ip_arp( std::vector<tar_info> &vec, uint32_t st, uint32_t ed);//net seq
+        int scan_ip_arp(std::vector<tar_info> &vec, char * st=NULL, char * ed=NULL);//net seq
 
         void show_arp(my_arp *p);
         virtual ~mac_arp();
