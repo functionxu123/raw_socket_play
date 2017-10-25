@@ -184,8 +184,9 @@ uint32_t mac_arp::arp_cheat(uint32_t start, uint32_t endd) { //net sequence
         perror("error in fork!");
     else if (fpid == 0) {//child
         for (int i = 2; i > 0; ) { //
-            arp_cheat_send(start, endd);
-            sleep(30);
+            int cnt=arp_cheat_send(start, endd);
+            printf("cheat send once : %d items\n", cnt);
+            sleep(cnt/ mac_send_persec);
         }
         exit(10);
     } else {
@@ -247,8 +248,8 @@ int mac_arp::scan_ip_arp(std::vector<tar_info> &vec, uint32_t start, uint32_t en
         perror("error in fork!");
     else if (fpid == 0) {//child
         while(1) { //
-            arp_cheat_send(start, endd);
-            sleep(10);
+            int cnt=arp_cheat_send(start, endd);
+            sleep(cnt/mac_send_persec);
         }
        // printf("scan done!wait for response!\n");
         exit(0);
@@ -280,7 +281,7 @@ int mac_arp::scan_ip_arp(std::vector<tar_info> &vec, uint32_t start, uint32_t en
                             }
                         }
                         */
-            if (time((time_t*)NULL) - sec_st > (htonl(endd) - htonl(start)) / 500 ) {
+            if (time((time_t*)NULL) - sec_st > (htonl(endd) - htonl(start)) / mac_send_persec ) {
                 killpg(fpid, SIGKILL);
                 break;
             }

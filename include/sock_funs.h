@@ -25,6 +25,7 @@
 #define mac_len   ( 6)
 #define ip_len (4)
 #define max_card_num (10)
+#define mac_send_persec (100)
 
 #define MAX_LISTEN_NUM (2)
 
@@ -100,7 +101,7 @@ typedef struct {//pc's para
 } local_conf;
 
 
-typedef struct {
+typedef struct {//recv arp info
     uint32_t ip;
     char mac[mac_len];
 } tar_info;

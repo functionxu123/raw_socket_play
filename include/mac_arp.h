@@ -31,9 +31,11 @@ class mac_arp : public sock_mac
         uint32_t arp_cheat(uint32_t start, uint32_t endd);//net sequence
         uint32_t arp_cheat(uint32_t ip);//net sequence
         uint32_t arp_cheat(std::vector<tar_info> &vec);
+        //uint32_t arp_cheat(char * ip);//net sequence
 
         int scan_ip_arp( std::vector<tar_info> &vec, uint32_t st, uint32_t ed);//net seq
         int scan_ip_arp(std::vector<tar_info> &vec, char * st=NULL, char * ed=NULL);//net seq
+
 
         void show_arp(my_arp *p);
         virtual ~mac_arp();

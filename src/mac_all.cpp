@@ -17,10 +17,19 @@ mac_all::mac_all(int ind): sock_mac ( htons ( ETH_P_ALL ) , ind) {
     //ctor
 }
 
-int mac_all::recv_all(char *buff, int flag) {
-    int  ret_len = recvfrom ( get_socket(), buff, max_ether_len, flag, NULL, NULL ); //
+int mac_all::recv_all(char *buff, int len, int flag) {
+    int  ret_len = recvfrom ( get_socket(), buff, len, flag, NULL, NULL ); //
     if ( ret_len < 0 ) {
-        perror ( "send error!" );
+        perror ( "recv_all:recv error!" );
+        return -1;
+    }
+    return ret_len;
+}
+
+int mac_all::send_all(char *buf, int len, int flag){
+    int  ret_len = sendto ( get_socket(), buf, len, flag, ( struct sockaddr * ) &saddr, sizeof ( struct sockaddr_ll ) ); //
+    if ( ret_len < 0 ) {
+        perror ( "send_all::send error!" );
         return -1;
     }
     return ret_len;

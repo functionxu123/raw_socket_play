@@ -56,13 +56,19 @@ public:
 
     void form_ip(my_ip *ip, int datalen, int proto,  char *desip, char *srcip = NULL, int head_len = 20, int version = 4);
     void form_tcp(my_tcp *tcp, char *data, int data_len, char *src_ip, char *des_ip, int src_port, int des_port, int seq, int ack, char flag, int hd_len = 20, int win_size = max_ether_len);
+    void show_ip(my_ip *p);
+    void show_tcp(my_tcp *p);
+
     uint32_t local_ipstart();//net_sequence
     uint32_t local_ipend();//net sequence
     uint32_t getgateway();
+    uint32_t getmyip(int index=local_conf_valid-1);
+    void show_netcards();
 
     char *rid_ip(char *p, my_ip*ip);
     char *rid_tcp(char *p, my_tcp *tcp);
     void my_swap_buffer(char *p1, char *p2, int len);
+    int my_comp_mac(char *a, char *b, int len = mac_len);
     int ip_com(uint32_t a, uint32_t b) ;
 
     static int local_conf_valid;//这是因为类的静态成员变量在使用前必须先初始化。

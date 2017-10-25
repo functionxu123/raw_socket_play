@@ -97,10 +97,22 @@ int sock_base::get_local_info( local_conf p[]) {
     return count;
 }
 
+void sock_base::show_netcards(){
+    printf("Avalible net cards:\n");
+    for (int i=0; i<local_conf_valid;i++){
+        printf("index %d: %s\n",local[i].index, local[i].card_name);
+        printf("IP: %s\n", local[i].ip);
+        printf("MASK: %s\n", local[i].mask);
+        printf("GATE: %s\n", inet_ntoa(i2addr_in(local[i].gate)));
+        printf("MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",local[i].mac[0] & 0xff, local[i].mac[1]& 0xff, local[i].mac[2]& 0xff, local[i].mac[3]& 0xff, local[i].mac[4]& 0xff, local[i].mac[5] & 0xff);
+        printf("\n");
+    }
+}
 
 int sock_base::get_socket() {
     return socket_m;
 }
+
 void sock_base::setsocket(int p) {
     if (socket_m > 0) close(socket_m);
     socket_m = p;
@@ -179,6 +191,17 @@ void sock_base::form_tcp(my_tcp *tcp, char *data, int data_len, char *src_ip, ch
     tcp->check_sum = checksum((uint16_t*)bu, sizeof(fake_hd) + sizeof(my_tcp) + data_len);
 }
 
+void sock_base::show_ip(my_ip *p){
+    printf("IP INFO:\n");
+    printf("ip addr: %s --> ", inet_ntoa(i2addr_in(p->src_ip)));
+    printf("%s\n", inet_ntoa(i2addr_in(p->des_ip)));
+}
+
+void sock_base::show_tcp(my_tcp *p){
+    printf("TCP INFO:\n'");
+    printf("port: %d --> %d \n", htons(p->src_port), htons(p->des_port));
+}
+
 uint32_t sock_base::local_ipstart() {//net seq
     uint32_t mask = htonl(inet_addr(local[local_conf_valid - 1].mask));
     uint32_t ip = htonl(inet_addr(local[local_conf_valid - 1].ip));
@@ -233,6 +256,10 @@ uint32_t sock_base::getgateway(){
     return inet_addr(gateway);
 }
 
+uint32_t sock_base::getmyip(int index){
+    return inet_addr(local[index].ip);
+}
+
 void sock_base::my_swap_buffer(char *p1, char *p2, int len){
     char tep;
     int i=0;
@@ -241,6 +268,13 @@ void sock_base::my_swap_buffer(char *p1, char *p2, int len){
         p1[i]=p2[i];
         p2[i]=tep;
     }
+}
+
+int sock_base::my_comp_mac(char *a, char *b, int len){//1 for same, 0 for not
+        int flag=len-1;
+        for (; flag>=0; flag--)
+            if (a[flag] != b[flag]) return 0;
+        return 1;
 }
 
 int sock_base::ip_com(uint32_t a, uint32_t b) { //net seq
