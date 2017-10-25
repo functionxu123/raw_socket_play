@@ -7,6 +7,7 @@
 class mac_all : public sock_mac {
 public:
     mac_all();
+    mac_all(int ind);
     int recv_all(char *buf, int flag=0);
 
 

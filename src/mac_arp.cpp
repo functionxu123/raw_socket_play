@@ -14,6 +14,9 @@ mac_arp::mac_arp() : sock_mac ( htons ( ETH_P_ARP ) ) { //注意，mac的socket�
     //ctor
 }
 
+mac_arp::mac_arp(int ind): sock_mac ( htons ( ETH_P_ARP ), ind ){
+}
+
 //void form_arp(char * ip_src,  char *ip_des, int op=1, char *mac_src=NULL, char * mac_des=NULL);
 void mac_arp::form_arp ( my_arp *p, char * ip_src,  char *ip_des, int op, char *mac_src, char * mac_des ) {
     form_arp(p, inet_addr(ip_src), inet_addr(ip_des), op, mac_src, mac_des);
@@ -117,7 +120,7 @@ int mac_arp::arp_cheat_send(uint32_t ip, char *des) {
     my_arp arp;
 
     form_machd(&mac, NULL, des);
-    form_arp(&arp, local[local_conf_valid - 1].gate, ip, 2  , NULL, des);//
+    form_arp(&arp, local[local_conf_valid - 1].gate, ip, 2, NULL, des);  //
     return send_arp(&mac, &arp);
 }
 
@@ -129,6 +132,11 @@ int mac_arp::arp_cheat_recv(char *start, char *endsss, tar_info *p) {
     return arp_cheat_recv(st, ed, p);
 }
 
+/*
+wait for a arp packet
+if it's a request and the ip addr it requires is the gate, return a response with my mac addr
+    any way ,it will return the arp's src mac and ip by the member ret
+*/
 int mac_arp::arp_cheat_recv(uint32_t start, uint32_t endd, tar_info *ret) { //net sequence
     my_mac mac;
     my_arp arp;
@@ -175,9 +183,9 @@ uint32_t mac_arp::arp_cheat(uint32_t start, uint32_t endd) { //net sequence
     if (fpid < 0)
         perror("error in fork!");
     else if (fpid == 0) {//child
-        for (int i = 2; i > 0; i--) { //
+        for (int i = 2; i > 0; ) { //
             arp_cheat_send(start, endd);
-            sleep(10);
+            sleep(30);
         }
         exit(10);
     } else {
@@ -227,16 +235,22 @@ uint32_t mac_arp::arp_cheat(uint32_t ip) { //net sequence
     return arp_cheat(ip, ip);
 }
 
+/*
+    two processes, child to send arp cheat requests, and father use 'arp_cheat_recv'
+    to recv arp requests to my mac addr and send back cheat answers, during these ,it will
+    store the src mac and ipv4 addr, this is the scan;
+    all the processes are time limited;the listing time related to the ip span;
+*/
 int mac_arp::scan_ip_arp(std::vector<tar_info> &vec, uint32_t start, uint32_t endd) { //net seq
     pid_t fpid = fork();
     if (fpid < 0)
         perror("error in fork!");
     else if (fpid == 0) {//child
-        while(1){ //send twice
+        while(1) { //
             arp_cheat_send(start, endd);
             sleep(10);
         }
-        printf("scan done!wait for response!\n");
+       // printf("scan done!wait for response!\n");
         exit(0);
     } else {//father
         int sec_st = time((time_t*)NULL);
@@ -255,21 +269,19 @@ int mac_arp::scan_ip_arp(std::vector<tar_info> &vec, uint32_t start, uint32_t en
                 }
             }
             if (!fla) vec.push_back(ne);
-
-            // if (vec.size() >= 5) break;
-/*
-            if (!waitpid(fpid, NULL, WNOHANG)) {
-                sec_ed = time((time_t*)NULL);
-                continue;
-            } else {//has ended
-                int now = time((time_t*)NULL) - sec_ed;
-                if ( now > (sec_ed - sec_st) && now > 1) {
-                    break;
-                }
-            }
-            */
-            if (time((time_t*)NULL)-sec_st> (htonl(endd)- htonl(start))/500 ){
-                killpg(fpid,SIGKILL);
+            /*
+                        if (!waitpid(fpid, NULL, WNOHANG)) {
+                            sec_ed = time((time_t*)NULL);
+                            continue;
+                        } else {//has ended
+                            int now = time((time_t*)NULL) - sec_ed;
+                            if ( now > (sec_ed - sec_st) && now > 1) {
+                                break;
+                            }
+                        }
+                        */
+            if (time((time_t*)NULL) - sec_st > (htonl(endd) - htonl(start)) / 500 ) {
+                killpg(fpid, SIGKILL);
                 break;
             }
         }

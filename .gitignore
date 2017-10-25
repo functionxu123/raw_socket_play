@@ -1,9 +1,7 @@
-*.cbp
-*.layout
+
 /bin/
 /debug/
 /obj/
-*.depend
-*.layout
+
 
 

@@ -12,8 +12,8 @@ int main() {
     mac_arp mya;
     my_mac m;
     my_arp a;
-    char *ip_st="10.137.0.2";
-    char *ip_ed="10.137.255.254";
+    char *ip_st="10.137.142.100";
+    char *ip_ed="10.137.142.150";
     //mya.recv_arp(&m, &a);
     char *fake_mac="\xac\x45\x89\x90\x45\x7a";//194 204
 
@@ -36,7 +36,7 @@ int main() {
     //printf("%s\n",inet_ntoa(i2addr_in(tepp)));
     //mya.arp_cheat(ip_st, ip_ed );
 
-
+/**/
     vector<tar_info> pr;
 
     mya.scan_ip_arp(pr, ip_st, ip_ed);//
@@ -50,7 +50,7 @@ int main() {
     }
     printf("size:%d\n", pr.size());
 
-    mya.arp_cheat(pr);
+    //mya.arp_cheat(pr);
 
     return 0;
 }

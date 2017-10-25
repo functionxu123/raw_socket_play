@@ -7,6 +7,13 @@ sock_mac::sock_mac ( int proto ) : sock_base ( PF_PACKET, SOCK_RAW, proto ) {
     saddr.sll_family = PF_PACKET;
 }
 
+sock_mac::sock_mac ( int proto, int ind) : sock_base ( PF_PACKET, SOCK_RAW, proto ) {
+    //ctor
+    memset ( &saddr, 0, sizeof ( struct sockaddr_ll ) );
+    saddr.sll_ifindex = local[ ind ].index;
+    saddr.sll_family = PF_PACKET;
+}
+
 void sock_mac::form_machd ( my_mac *mac, char *src, char *des,  uint16_t type ) {
     mac->type = type;
     if ( des == NULL ) {

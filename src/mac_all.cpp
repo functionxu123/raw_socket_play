@@ -13,6 +13,10 @@ mac_all::mac_all(): sock_mac ( htons ( ETH_P_ALL ) ) {
     //ctor
 }
 
+mac_all::mac_all(int ind): sock_mac ( htons ( ETH_P_ALL ) , ind) {
+    //ctor
+}
+
 int mac_all::recv_all(char *buff, int flag) {
     int  ret_len = recvfrom ( get_socket(), buff, max_ether_len, flag, NULL, NULL ); //
     if ( ret_len < 0 ) {
@@ -21,8 +25,6 @@ int mac_all::recv_all(char *buff, int flag) {
     }
     return ret_len;
 }
-
-
 
 mac_all::~mac_all() {
     //dtor
