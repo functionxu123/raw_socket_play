@@ -14,6 +14,7 @@ class sock_net : public sock_trans
     public:
         sock_net(int proto);
         sock_net(int AF, int type, int proto);
+        virtual int bind_card(int index=local_conf_valid-1);
         virtual ~sock_net();
 
     protected:

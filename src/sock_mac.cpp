@@ -3,15 +3,41 @@
 sock_mac::sock_mac ( int proto ) : sock_net( PF_PACKET, SOCK_RAW, proto ) {
     //ctor
     memset ( &saddr, 0, sizeof ( struct sockaddr_ll ) );
-    saddr.sll_ifindex = local[local_conf_valid - 1].index;
+    saddr.sll_ifindex =0;//local[local_conf_valid - 1].index;//0 means all the port
     saddr.sll_family = PF_PACKET;
+    saddr.sll_protocol = proto;
+
+    memset ( &caddr, 0, sizeof ( struct sockaddr_ll ) );
+    caddr.sll_ifindex =0;//local[local_conf_valid - 1].index;//0 means all the port
+    caddr.sll_family = PF_PACKET;
+    caddr.sll_protocol = proto;
 }
 
-sock_mac::sock_mac ( int proto, int ind) : sock_net ( PF_PACKET, SOCK_RAW, proto ) {
+sock_mac::sock_mac ( int proto, int ind, int sen) : sock_net ( PF_PACKET, SOCK_RAW, proto ) {
     //ctor
     memset ( &saddr, 0, sizeof ( struct sockaddr_ll ) );
     saddr.sll_ifindex = local[ ind ].index;
     saddr.sll_family = PF_PACKET;
+    saddr.sll_protocol = proto;
+
+    memset ( &caddr, 0, sizeof ( struct sockaddr_ll ) );
+    caddr.sll_ifindex =local[sen].index;//local[local_conf_valid - 1].index;//0 means all the port
+    caddr.sll_family = PF_PACKET;
+    caddr.sll_protocol = proto;
+}
+
+int sock_mac::set_recv_card(int ind){
+    caddr.sll_ifindex =local[ind].index;
+    if(bind (get_socket(), (struct sockaddr *)&caddr, sizeof(struct sockaddr_ll))!=0){
+        perror("sock_mac:bind error!");
+        return -1;
+    }
+    return 0;
+}
+
+int sock_mac::set_send_card(int ind){
+    saddr.sll_ifindex =local[ind].index;
+    return 0;
 }
 
 void sock_mac::form_machd ( my_mac *mac, char *src, char *des,  uint16_t type ) {
@@ -30,12 +56,10 @@ void sock_mac::form_machd ( my_mac *mac, char *src, char *des,  uint16_t type ) 
     }
 }
 
-
 char * sock_mac::rid_mac(char *p, my_mac *mac) {
     if (mac!=NULL) memcpy(mac, p, sizeof(my_mac));
     return p + sizeof(my_mac);
 }
-
 
 void sock_mac::show_mac ( my_mac*eth ) {
     printf ( "%02x:%02x:%02x:%02x:%02x:%02x --> ", eth->des[0], eth->des[1], eth->des[2], eth->des[3], eth->des[4], eth->des[5] );

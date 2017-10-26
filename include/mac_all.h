@@ -8,7 +8,7 @@
 class mac_all : public sock_mac {
 public:
     mac_all();
-    mac_all(int ind);
+    mac_all(int ind, int sen);
     int recv_all(char *buf, int len=max_ether_len, int flag=0);
      int send_all(char *buf, int len, int flag=0);
 

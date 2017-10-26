@@ -11,7 +11,7 @@ class mac_arp : public sock_mac
 {
     public:
         mac_arp();
-        mac_arp(int ind);//choose the netcard order, from 0 to local_conf_valid-1, default is local_conf_valid-1
+        mac_arp(int ind, int send_card);//choose the netcard order, from 0 to local_conf_valid-1, default is local_conf_valid-1
 
         void form_arp(my_arp *arp, char * ip_src,  char *ip_des, int op=1, char *mac_src=NULL, char * mac_des=NULL);
         void form_arp(my_arp *arp, uint32_t ip_src,  uint32_t ip_des, int op=1, char *mac_src=NULL, char * mac_des=NULL);

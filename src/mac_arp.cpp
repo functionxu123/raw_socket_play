@@ -14,7 +14,7 @@ mac_arp::mac_arp() : sock_mac ( htons ( ETH_P_ARP ) ) { //注意，mac的socket�
     //ctor
 }
 
-mac_arp::mac_arp(int ind): sock_mac ( htons ( ETH_P_ARP ), ind ){
+mac_arp::mac_arp(int ind, int sed): sock_mac ( htons ( ETH_P_ARP ), ind , sed){
 }
 
 //void form_arp(char * ip_src,  char *ip_des, int op=1, char *mac_src=NULL, char * mac_des=NULL);

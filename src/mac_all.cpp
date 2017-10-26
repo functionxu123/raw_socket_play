@@ -13,12 +13,16 @@ mac_all::mac_all(): sock_mac ( htons ( ETH_P_ALL ) ) {
     //ctor
 }
 
-mac_all::mac_all(int ind): sock_mac ( htons ( ETH_P_ALL ) , ind) {
+mac_all::mac_all(int ind, int send_card): sock_mac ( htons ( ETH_P_ALL ), ind, send_card) {
     //ctor
 }
 
 int mac_all::recv_all(char *buff, int len, int flag) {
-    int  ret_len = recvfrom ( get_socket(), buff, len, flag, NULL, NULL ); //
+    socklen_t addrlen = sizeof(struct sockaddr_in);
+
+    int  ret_len = recvfrom ( get_socket(), buff, len, flag, (struct sockaddr*)&caddr, &addrlen ); //
+    // int  ret_len = recvfrom ( get_socket(), buff, len, flag, NULL, NULL ); //
+    printf("recv form index:%d\n", caddr.sll_ifindex );
     if ( ret_len < 0 ) {
         perror ( "recv_all:recv error!" );
         return -1;
@@ -26,7 +30,7 @@ int mac_all::recv_all(char *buff, int len, int flag) {
     return ret_len;
 }
 
-int mac_all::send_all(char *buf, int len, int flag){
+int mac_all::send_all(char *buf, int len, int flag) {
     int  ret_len = sendto ( get_socket(), buf, len, flag, ( struct sockaddr * ) &saddr, sizeof ( struct sockaddr_ll ) ); //
     if ( ret_len < 0 ) {
         perror ( "send_all::send error!" );

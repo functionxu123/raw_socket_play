@@ -41,7 +41,19 @@ int main() {
     //printf("%s\n",inet_ntoa(i2addr_in(tepp)));
     //mya.arp_cheat(ip_st, ip_ed );
 
+    all.show_netcards();
+    all.set_recv_card();
+    while(1){
+    int tlen = all.recv_all(buf);
+            //all.show_mac((my_mac*)buf);
+            my_mac *mp = (my_mac*)buf;
+            my_ip*pp = (my_ip*)all.rid_mac(buf);
+            all.show_ip(pp);
+}
 
+
+
+    /*
     vector<tar_info> pr;
 
     mya.scan_ip_arp(pr, ip_st, ip_ed);//
@@ -72,14 +84,9 @@ int main() {
                 all.send_all(buf, tlen);
                 printf("switch once\n");
             }
-            /*
-            if (all.my_comp_mac((char *)(mp->src), fake_mac)) {
-            memcpy(mp->src, fake_mac, mac_len);
-            all.send_all(buf, tlen);
-            printf("switch once\n");
-            }
-            }  */
+
         }
     }
+    */
     return 0;
 }

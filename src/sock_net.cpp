@@ -9,6 +9,10 @@ sock_net::sock_net(int AF, int type, int proto):sock_trans(AF, type,proto){
 
 }
 
+int sock_net::bind_card(int index){
+
+}
+
 sock_net::~sock_net()
 {
     //dtor
