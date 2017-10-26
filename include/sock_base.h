@@ -63,13 +63,15 @@ public:
     uint32_t local_ipend();//net sequence
     uint32_t getgateway();
     uint32_t getmyip(int index=local_conf_valid-1);
+
     void show_netcards();
 
     char *rid_ip(char *p, my_ip*ip);
     char *rid_tcp(char *p, my_tcp *tcp);
     void my_swap_buffer(char *p1, char *p2, int len);
     int my_comp_mac(char *a, char *b, int len = mac_len);
-    int ip_com(uint32_t a, uint32_t b) ;
+
+    struct sockaddr_in host_addr, client_addr;
 
     static int local_conf_valid;//这是因为类的静态成员变量在使用前必须先初始化。
     static local_conf local[max_card_num];

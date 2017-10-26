@@ -12,6 +12,8 @@ sock_base::sock_base(int AF, int type, int proto) {
         perror("sock_base:create socket error!");
         exit(1);
     }
+    bzero(&host_addr, sizeof(struct sockaddr_in));
+    bzero(&client_addr, sizeof(struct sockaddr_in));
 
     if(!local_conf_valid) {
         local_conf_valid = get_local_info(local);
@@ -277,9 +279,6 @@ int sock_base::my_comp_mac(char *a, char *b, int len){//1 for same, 0 for not
         return 1;
 }
 
-int sock_base::ip_com(uint32_t a, uint32_t b) { //net seq
-    return (htonl(a) < htonl(b));
-}
 
 sock_base::~sock_base() {
     //dtor

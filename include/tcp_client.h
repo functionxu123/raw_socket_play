@@ -24,7 +24,7 @@ public:
 protected:
 
 private:
-    struct sockaddr_in server_addr;
+    //truct sockaddr_in server_addr;
 };
 
 #endif // TCP_CLIENT_H

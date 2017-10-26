@@ -2,28 +2,24 @@
 
 
 udp_client::udp_client(uint32_t ip, int port): sock_udp() {
-    bzero(&server_addr, sizeof(struct sockaddr_in));
-
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = ip;//inet_aton("127.0.0.1", (struct in_addr *)&server_addr.sin_addr);
-    server_addr.sin_port = htons(port);
+    client_addr.sin_family = AF_INET;
+    client_addr.sin_addr.s_addr = ip;//inet_aton("127.0.0.1", (struct in_addr *)&server_addr.sin_addr);
+    client_addr.sin_port = htons(port);
 }
 
 
 udp_client::udp_client(char *ip, int port): sock_udp() {
     //ctor
-    bzero(&server_addr, sizeof(struct sockaddr_in));
-
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = inet_addr(ip);//inet_aton("127.0.0.1", (struct in_addr *)&server_addr.sin_addr);
-    server_addr.sin_port = htons(port);
+    client_addr.sin_family = AF_INET;
+    client_addr.sin_addr.s_addr = inet_addr(ip);//inet_aton("127.0.0.1", (struct in_addr *)&server_addr.sin_addr);
+    client_addr.sin_port = htons(port);
 }
 
 
 int udp_client::recv_ser(char *p, int len, int flag) {
 st:
     socklen_t addrlen=sizeof(struct sockaddr_in);
-    int retlen = recvfrom(get_socket(), p, len, flag, (struct sockaddr*)&server_addr,&addrlen) ;
+    int retlen = recvfrom(get_socket(), p, len, flag, (struct sockaddr*)&host_addr,&addrlen) ;
     if(retlen < 0) {
         if(errno == EINTR)
             return 0;
@@ -37,7 +33,7 @@ st:
 
 int udp_client::send_ser(char *p, int len, int flag) {
 st:
-    int retlen = sendto(get_socket(), p, len, flag, (struct sockaddr*)&server_addr,sizeof(struct sockaddr_in));
+    int retlen = sendto(get_socket(), p, len, flag, (struct sockaddr*)&client_addr,sizeof(struct sockaddr_in));
     if(retlen < 0) {
         if(errno == EINTR)
             goto st;

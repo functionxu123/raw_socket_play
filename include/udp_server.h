@@ -3,13 +3,13 @@
 
 #include <sock_udp.h>
 #include <process_con.h>
-#include <server_ops.h>
 
 
-class udp_server : public sock_udp,private server_ops
+class udp_server : public sock_udp
 {
     public:
         udp_server(int p);
+        udp_server(int , int);
         int bind_addr();
         int bind_addr(sockaddr_in *p);
 

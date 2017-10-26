@@ -9,24 +9,20 @@
 
 tcp_client::tcp_client(char *p, int port): sock_tcp() {
     //ctor
-    bzero(&server_addr, sizeof(struct sockaddr_in));
-
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = inet_addr(p);//inet_aton("127.0.0.1", (struct in_addr *)&server_addr.sin_addr);
-    server_addr.sin_port = htons(port);
+    client_addr.sin_family = AF_INET;
+    client_addr.sin_addr.s_addr = inet_addr(p);//inet_aton("127.0.0.1", (struct in_addr *)&server_addr.sin_addr);
+    client_addr.sin_port = htons(port);
 }
 
 tcp_client::tcp_client(uint32_t p, int port): sock_tcp() {
     //ctor
-    bzero(&server_addr, sizeof(struct sockaddr_in));
-
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = p;
-    server_addr.sin_port = htons(port);
+    client_addr.sin_family = AF_INET;
+    client_addr.sin_addr.s_addr = p;
+    client_addr.sin_port = htons(port);
 }
 
 int tcp_client::connect_ser() {
-    int tp = connect(get_socket(), (struct sockaddr *)&server_addr, sizeof(struct sockaddr_in));
+    int tp = connect(get_socket(), (struct sockaddr *)&client_addr, sizeof(struct sockaddr_in));
     if(tp != 0) {
         perror("tcp_client:connect error!");
         return -1;

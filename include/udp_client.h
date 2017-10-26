@@ -15,7 +15,7 @@ public:
 protected:
 
 private:
-    struct sockaddr_in server_addr;
+    //struct sockaddr_in server_addr;
 };
 
 #endif // UDP_CLIENT_H

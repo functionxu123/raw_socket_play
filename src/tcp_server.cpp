@@ -1,7 +1,17 @@
 #include "tcp_server.h"
 
-tcp_server::tcp_server(int port): sock_tcp() ,server_ops(port){
+tcp_server::tcp_server(int port): sock_tcp() {
     //ctor
+    host_addr.sin_family = AF_INET;
+    host_addr.sin_port = htons(port);
+    host_addr.sin_addr.s_addr = htonl(INADDR_ANY);//servers
+}
+
+tcp_server::tcp_server(int port, int index): sock_tcp() {
+    //ctor
+    host_addr.sin_family = AF_INET;
+    host_addr.sin_port = htons(port);
+    host_addr.sin_addr.s_addr = inet_addr(local[index].ip);//servers
 }
 
 int tcp_server::bind_addr() {
@@ -11,6 +21,7 @@ int tcp_server::bind_addr() {
     }
     return 0;
 }
+
 int tcp_server::bind_addr(sockaddr_in *p) {
     if(bind(get_socket(), (struct sockaddr *)&p, sizeof(struct sockaddr_in)) < 0) {
         perror("tcp_server:bind port error!");

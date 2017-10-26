@@ -1,7 +1,17 @@
 #include "udp_server.h"
 
-udp_server::udp_server(int port): sock_udp(),server_ops(port) {
+udp_server::udp_server(int port): sock_udp() {
     //ctor
+    host_addr.sin_family = AF_INET;
+    host_addr.sin_port = htons(port);
+    host_addr.sin_addr.s_addr = htonl(INADDR_ANY);//servers
+}
+
+udp_server::udp_server(int port, int index): sock_udp() {
+    //ctor
+    host_addr.sin_family = AF_INET;
+    host_addr.sin_port = htons(port);
+    host_addr.sin_addr.s_addr = inet_addr(local[index].ip);//servers
 }
 
 int udp_server::bind_addr() {

@@ -6,6 +6,7 @@ class server_ops
 {
     public:
         server_ops(int port);
+
         //int bind_addr();
         virtual ~server_ops();
         struct sockaddr_in host_addr;

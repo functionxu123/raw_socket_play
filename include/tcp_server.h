@@ -3,17 +3,17 @@
 
 #include <sock_tcp.h>
 #include "process_con.h"
-#include <server_ops.h>
 /*
   hostaddr.sin_family = AF_INET;
   hostaddr.sin_port = htons(LISTEN_PORT);
   hostaddr.sin_addr.s_addr = htonl(INADDR_ANY);//server
 */
 
-class tcp_server : public sock_tcp,private server_ops
+class tcp_server : public sock_tcp
 {
     public:
         tcp_server(int port);
+        tcp_server(int port, int index);//
         virtual ~tcp_server();
         int bind_addr();
         int bind_addr(sockaddr_in *p);
