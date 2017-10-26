@@ -1,13 +1,13 @@
 #include "sock_mac.h"
 
-sock_mac::sock_mac ( int proto ) : sock_base ( PF_PACKET, SOCK_RAW, proto ) {
+sock_mac::sock_mac ( int proto ) : sock_net( PF_PACKET, SOCK_RAW, proto ) {
     //ctor
     memset ( &saddr, 0, sizeof ( struct sockaddr_ll ) );
     saddr.sll_ifindex = local[local_conf_valid - 1].index;
     saddr.sll_family = PF_PACKET;
 }
 
-sock_mac::sock_mac ( int proto, int ind) : sock_base ( PF_PACKET, SOCK_RAW, proto ) {
+sock_mac::sock_mac ( int proto, int ind) : sock_net ( PF_PACKET, SOCK_RAW, proto ) {
     //ctor
     memset ( &saddr, 0, sizeof ( struct sockaddr_ll ) );
     saddr.sll_ifindex = local[ ind ].index;

@@ -8,6 +8,7 @@ class sock_trans : public sock_base
 {
     public:
         sock_trans(int type=SOCK_STREAM);
+        sock_trans(int AF, int type, int proto);
         virtual ~sock_trans();
 
     protected:

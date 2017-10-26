@@ -1,10 +1,11 @@
 #ifndef SOCK_MAC_H
 #define SOCK_MAC_H
 
-#include <sock_base.h>
+#include <sock_net.h>
 
 
-class sock_mac : public sock_base {
+
+class sock_mac : public sock_net {
 public:
     sock_mac(int proto);
     sock_mac(int proto, int index);
