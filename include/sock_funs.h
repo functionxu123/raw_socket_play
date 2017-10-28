@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <fcntl.h>
 
 
 
@@ -105,6 +106,12 @@ typedef struct {//recv arp info
     uint32_t ip;
     char mac[mac_len];
 } tar_info;
+
+typedef struct nat_tab{
+    uint32_t ip;
+    int iner_port;
+    int out_port;
+}nat_table;
 
 static int com_ip(tar_info a, tar_info b) {//no reference in c
     return htonl(a.ip) < htonl(b.ip);

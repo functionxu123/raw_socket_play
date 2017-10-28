@@ -66,10 +66,12 @@ public:
 
     void show_netcards();
 
-    char *rid_ip(char *p, my_ip*ip);
-    char *rid_tcp(char *p, my_tcp *tcp);
+    char *rid_ip(char *p, my_ip*ip=NULL);
+    char *rid_tcp(char *p, my_tcp *tcp=NULL);
     void my_swap_buffer(char *p1, char *p2, int len);
     int my_comp_mac(char *a, char *b, int len = mac_len);
+
+    int get_freeport();
 
     struct sockaddr_in host_addr, client_addr;
 

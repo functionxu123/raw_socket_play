@@ -87,7 +87,7 @@ int sock_base::get_local_info( local_conf p[]) {
                     return -1;
                 }
 
-                p[count].gate=getgateway();
+                p[count].gate = getgateway();
 
                 count++;
             }
@@ -99,14 +99,15 @@ int sock_base::get_local_info( local_conf p[]) {
     return count;
 }
 
-void sock_base::show_netcards(){
+void sock_base::show_netcards() {
     printf("Avalible net cards:\n");
-    for (int i=0; i<local_conf_valid;i++){
-        printf("index %d: %s\n",local[i].index, local[i].card_name);
+    for (int i = 0; i < local_conf_valid; i++) {
+        printf("NUM: %d\n", i);
+        printf("index %d: %s\n", local[i].index, local[i].card_name);
         printf("IP: %s\n", local[i].ip);
         printf("MASK: %s\n", local[i].mask);
         printf("GATE: %s\n", inet_ntoa(i2addr_in(local[i].gate)));
-        printf("MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",local[i].mac[0] & 0xff, local[i].mac[1]& 0xff, local[i].mac[2]& 0xff, local[i].mac[3]& 0xff, local[i].mac[4]& 0xff, local[i].mac[5] & 0xff);
+        printf("MAC: %02x:%02x:%02x:%02x:%02x:%02x\n", local[i].mac[0] & 0xff, local[i].mac[1] & 0xff, local[i].mac[2] & 0xff, local[i].mac[3] & 0xff, local[i].mac[4] & 0xff, local[i].mac[5] & 0xff);
         printf("\n");
     }
 }
@@ -193,15 +194,17 @@ void sock_base::form_tcp(my_tcp *tcp, char *data, int data_len, char *src_ip, ch
     tcp->check_sum = checksum((uint16_t*)bu, sizeof(fake_hd) + sizeof(my_tcp) + data_len);
 }
 
-void sock_base::show_ip(my_ip *p){
+void sock_base::show_ip(my_ip *p) {
     printf("IP INFO:\n");
     printf("ip addr: %s --> ", inet_ntoa(i2addr_in(p->src_ip)));
     printf("%s\n", inet_ntoa(i2addr_in(p->des_ip)));
+    printf("Check Sum: 0x%x\n", checksum((uint16_t*)p, htons(p->full_len)));
 }
 
-void sock_base::show_tcp(my_tcp *p){
+void sock_base::show_tcp(my_tcp *p) {
     printf("TCP INFO:\n'");
     printf("port: %d --> %d \n", htons(p->src_port), htons(p->des_port));
+
 }
 
 uint32_t sock_base::local_ipstart() {//net seq
@@ -219,17 +222,18 @@ uint32_t sock_base::local_ipend() {//net seq
 }
 
 char *sock_base::rid_ip(char *p, my_ip*ip) {
-    memcpy(ip, p, sizeof(my_ip));
-
-    return p + ((ip->ver_hdlen) & 0x0f) * 4;
+   if(ip!=NULL) memcpy(ip, p, sizeof(my_ip));
+    my_ip *tp=(my_ip*)p;
+    return p + ((tp->ver_hdlen) & 0x0f) * 4;
 }
 
 char *sock_base::rid_tcp(char *p, my_tcp *tcp) {
-    memcpy(tcp,p, sizeof(my_tcp));
-    return p + (((tcp->hdlen_flag) & 0xf0)>>2);
+    if (tcp!=NULL) memcpy(tcp, p, sizeof(my_tcp));
+    my_tcp * tp=(my_tcp*)p;
+    return p + (((tp->hdlen_flag) & 0xf0) >> 2);
 }
 
-uint32_t sock_base::getgateway(){
+uint32_t sock_base::getgateway() {
     FILE *fp;
     char buf[512];
     char cmd[128];
@@ -238,15 +242,13 @@ uint32_t sock_base::getgateway(){
 
     strcpy(cmd, "ip route");//run ip route command
     fp = popen(cmd, "r");
-    if(NULL == fp)
-    {
+    if(NULL == fp) {
         perror("popen error");
         return -1;
     }
-    while(fgets(buf, sizeof(buf), fp) != NULL)
-    {
-        tmp =buf;
-        while(*tmp && (*tmp==' ') )
+    while(fgets(buf, sizeof(buf), fp) != NULL) {
+        tmp = buf;
+        while(*tmp && (*tmp == ' ') )
             ++ tmp;
         if(strncmp(tmp, "default", strlen("default")) == 0)
             break;
@@ -258,27 +260,58 @@ uint32_t sock_base::getgateway(){
     return inet_addr(gateway);
 }
 
-uint32_t sock_base::getmyip(int index){
+uint32_t sock_base::getmyip(int index) {
     return inet_addr(local[index].ip);
 }
 
-void sock_base::my_swap_buffer(char *p1, char *p2, int len){
+void sock_base::my_swap_buffer(char *p1, char *p2, int len) {
     char tep;
-    int i=0;
-    for (i=0;i<len;i++){
-        tep=p1[i];
-        p1[i]=p2[i];
-        p2[i]=tep;
+    int i = 0;
+    for (i = 0; i < len; i++) {
+        tep = p1[i];
+        p1[i] = p2[i];
+        p2[i] = tep;
     }
 }
 
-int sock_base::my_comp_mac(char *a, char *b, int len){//1 for same, 0 for not
-        int flag=len-1;
-        for (; flag>=0; flag--)
-            if (a[flag] != b[flag]) return 0;
-        return 1;
+int sock_base::my_comp_mac(char *a, char *b, int len) { //1 for same, 0 for not
+    int flag = len - 1;
+    for (; flag >= 0; flag--)
+        if (a[flag] != b[flag]) return 0;
+    return 1;
 }
 
+int sock_base::get_freeport() {
+    struct sockaddr_in sin;
+    memset(&sin, 0, sizeof(sin));
+    sin.sin_family = AF_INET;
+    sin.sin_port = htons(0);
+    sin.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    if(fd < 0) {
+        perror("sock_base:get_freeport error!");
+        return 0;
+    }
+    if(bind(fd, (struct sockaddr *)&sin, sizeof(sin)) != 0) {
+        perror("sock_mac:get_freeport:bind() error");
+        close(fd);
+        return 0;
+    }
+
+    int len = sizeof(sin);
+    if(getsockname(fd, (struct sockaddr *)&sin, (socklen_t*)&len) != 0) {
+        perror("sock_base: get_freeport:error");
+        close(fd);
+        return 0;
+    }
+
+    int port = sin.sin_port;
+    if(fd != -1)
+        close(fd);
+    return port;
+}
 
 sock_base::~sock_base() {
     //dtor

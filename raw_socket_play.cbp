@@ -37,7 +37,6 @@
 		<Unit filename="include/mac_all.h" />
 		<Unit filename="include/mac_arp.h" />
 		<Unit filename="include/process_con.h" />
-		<Unit filename="include/server_ops.h" />
 		<Unit filename="include/sock_base.h" />
 		<Unit filename="include/sock_funs.h" />
 		<Unit filename="include/sock_mac.h" />
@@ -56,7 +55,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="src/process_con.cpp" />
-		<Unit filename="src/server_ops.cpp" />
 		<Unit filename="src/sock_base.cpp" />
 		<Unit filename="src/sock_mac.cpp" />
 		<Unit filename="src/sock_net.cpp" />

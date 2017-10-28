@@ -14,7 +14,7 @@ mac_arp::mac_arp() : sock_mac ( htons ( ETH_P_ARP ) ) { //注意，mac的socket�
     //ctor
 }
 
-mac_arp::mac_arp(int ind, int sed): sock_mac ( htons ( ETH_P_ARP ), ind , sed){
+mac_arp::mac_arp(int ind, int sed): sock_mac ( htons ( ETH_P_ARP ), ind, sed) {
 }
 
 //void form_arp(char * ip_src,  char *ip_des, int op=1, char *mac_src=NULL, char * mac_des=NULL);
@@ -61,8 +61,9 @@ int mac_arp::send_arp ( my_mac * mac, my_arp*arp, int flag ) {
 
 int mac_arp::recv_arp ( my_mac * mac, my_arp*arp, int flag ) {
     char buff[max_ether_len];
+    socklen_t addrlen = sizeof(struct sockaddr_in);
 
-    int  ret_len = recvfrom ( get_socket(), buff, max_ether_len, flag, NULL, NULL ); //
+    int  ret_len = recvfrom ( get_socket(), buff, max_ether_len, flag, (struct sockaddr*)&caddr, &addrlen  ); //
     if ( ret_len < 0 ) {
         perror ( "send error!" );
         return -1;
@@ -184,9 +185,9 @@ uint32_t mac_arp::arp_cheat(uint32_t start, uint32_t endd) { //net sequence
         perror("error in fork!");
     else if (fpid == 0) {//child
         for (int i = 2; i > 0; ) { //
-            int cnt=arp_cheat_send(start, endd);
+            int cnt = arp_cheat_send(start, endd);
             printf("cheat send once : %d items\n", cnt);
-            sleep(cnt/ mac_send_persec);
+            sleep(cnt / mac_send_persec);
         }
         exit(10);
     } else {
@@ -237,6 +238,65 @@ uint32_t mac_arp::arp_cheat(uint32_t ip) { //net sequence
 }
 
 /*
+return 0 if success, -1 for error, 1 for no reachable
+*/
+int mac_arp::get_mac(char *m, uint32_t ip) {
+    my_mac mac;
+    my_arp arp;
+    tar_info tar;
+    int i = 0;
+    for (i = 0; i < local_conf_valid; i++) {
+        uint32_t tp = inet_addr(local[i].mask);
+        if ((local[i].gate & tp) == (ip & tp)) break;
+    }
+
+    int pp[2];
+    if (pipe(pp) < 0) {
+        perror("mac_arp:get_mac:pip error!");
+        return -1;
+    }
+    fcntl(pp[0], F_SETFL, O_NONBLOCK);//read no block
+    fcntl(pp[1], F_SETFL, O_NONBLOCK);//send no block
+
+    pid_t fd = fork();
+    if (fd < 0) {
+        perror("mac_arp:get_mac:fork error!");
+        return -1;
+    } else if(fd) {  //father
+        char fbuf[100];
+        int sec_st = time((time_t*)NULL);
+        form_machd(&mac);
+        form_arp(&arp, inet_addr( local[i].ip), ip, 1);
+        while(1) {
+            if(send_arp(&mac, &arp) <= 0) {
+                perror ("mac_arp:get_mac:send_arp:error!");
+                break;
+            } else if(read(pp[0], fbuf, 100) > 0) {
+                memcpy(m, fbuf, mac_len);
+                wait(NULL);
+                return 0;
+            } else if(time((time_t*)NULL) - sec_st > 5) { //not reach
+                killpg(fd, SIGKILL);
+                return 1;
+            }
+            sleep(1);
+        }
+        return -1;
+    } else { //child
+        while(1) {
+            arp_cheat_recv(0, &tar);
+            if(tar.ip == ip) {
+                //killpg(fd, SIGKILL);
+                //memcpy(m, tar.mac, mac_len);
+                write(pp[1], tar.mac, mac_len);
+                break;
+            }
+        }
+        exit(0);
+    }
+}
+
+/*
     two processes, child to send arp cheat requests, and father use 'arp_cheat_recv'
     to recv arp requests to my mac addr and send back cheat answers, during these ,it will
     store the src mac and ipv4 addr, this is the scan;
@@ -248,10 +308,10 @@ int mac_arp::scan_ip_arp(std::vector<tar_info> &vec, uint32_t start, uint32_t en
         perror("error in fork!");
     else if (fpid == 0) {//child
         while(1) { //
-            int cnt=arp_cheat_send(start, endd);
-            sleep(cnt/mac_send_persec);
+            int cnt = arp_cheat_send(start, endd);
+            sleep(cnt / mac_send_persec);
         }
-       // printf("scan done!wait for response!\n");
+        // printf("scan done!wait for response!\n");
         exit(0);
     } else {//father
         int sec_st = time((time_t*)NULL);
