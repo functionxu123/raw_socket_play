@@ -11,6 +11,9 @@ sock_mac::sock_mac ( int proto ) : sock_net( PF_PACKET, SOCK_RAW, proto ) {
     caddr.sll_ifindex = local[local_conf_valid - 1].index;//0 means all the port
     caddr.sll_family = PF_PACKET;
     caddr.sll_protocol = proto;
+
+    sel_send_card=local_conf_valid - 1;
+    sel_recv_card=local_conf_valid - 1;
 }
 
 sock_mac::sock_mac ( int proto, int ind, int sen) : sock_net ( PF_PACKET, SOCK_RAW, proto ) {
@@ -19,11 +22,13 @@ sock_mac::sock_mac ( int proto, int ind, int sen) : sock_net ( PF_PACKET, SOCK_R
     saddr.sll_ifindex = local[ ind ].index;
     saddr.sll_family = PF_PACKET;
     saddr.sll_protocol = proto;
+    sel_send_card=ind;
 
     memset ( &caddr, 0, sizeof ( struct sockaddr_ll ) );
     caddr.sll_ifindex = local[sen].index; //local[local_conf_valid - 1].index;//0 means all the port
     caddr.sll_family = PF_PACKET;
     caddr.sll_protocol = proto;
+    sel_recv_card=sen;
 }
 
 /*
@@ -31,6 +36,7 @@ CAN ONLY CALLED ONCE, BECAUSE IT'S RELY ON BIND, BIND ONLY ONCE
 */
 int sock_mac::set_recv_card(int ind) {
     caddr.sll_ifindex = local[ind].index;
+    sel_recv_card=ind;
     if(bind (get_socket(), (struct sockaddr *)&caddr, sizeof(struct sockaddr_ll)) != 0) {
         perror("sock_mac:bind error!");
         return -1;
@@ -40,6 +46,7 @@ int sock_mac::set_recv_card(int ind) {
 
 int sock_mac::set_send_card(int ind) {
     saddr.sll_ifindex = local[ind].index;
+    sel_send_card=ind;
     return 0;
 }
 
@@ -53,7 +60,7 @@ void sock_mac::form_machd ( my_mac *mac, char *src, char *des,  uint16_t type ) 
     }
 
     if ( src == NULL ) {
-        memcpy ( mac->src, local[local_conf_valid - 1].mac, mac_len );
+        memcpy ( mac->src, local[sel_send_card].mac, mac_len );
     } else {
         memcpy ( mac->src, src, mac_len );
     }

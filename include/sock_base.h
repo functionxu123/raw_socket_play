@@ -62,6 +62,7 @@ public:
     uint32_t local_ipstart();//net_sequence
     uint32_t local_ipend();//net sequence
     uint32_t getgateway();
+    uint32_t getgateway(const char * pNICName);
     uint32_t getmyip(int index=local_conf_valid-1);
 
     void show_netcards();
@@ -70,6 +71,11 @@ public:
     char *rid_tcp(char *p, my_tcp *tcp=NULL);
     void my_swap_buffer(char *p1, char *p2, int len);
     int my_comp_mac(char *a, char *b, int len = mac_len);
+    virtual int set_recv_card(int index=local_conf_valid-1);
+    virtual int set_send_card(int index=local_conf_valid-1);
+    int ifoneofmy_mac(char *p);
+    int ifoneofmy_ip(uint32_t p);
+    int inwhichcard(uint32_t p);
 
     int get_freeport();
 
@@ -77,7 +83,7 @@ public:
 
     static int local_conf_valid;//这是因为类的静态成员变量在使用前必须先初始化。
     static local_conf local[max_card_num];
-
+        int sel_send_card, sel_recv_card;
 protected:
 
 

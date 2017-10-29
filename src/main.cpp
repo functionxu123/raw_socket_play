@@ -1,6 +1,7 @@
 #include<vector>
 #include <iostream>
 #include <algorithm>
+#include <set>
 using namespace std;
 
 #include <sock_funs.h>
@@ -44,11 +45,12 @@ int main() {
     all.show_netcards();
     //all.set_recv_card();
  /*   printf("free port:%d\n", all.get_freeport());
-
-    if(mya.get_mac(buf, inet_addr("10.137.0.1"))==0)
-    printf("gate mac:%02x, %02x, %02x", buf[3]& 0xff, buf[4]& 0xff,buf[5]& 0xff);
 */
-    all.nat(0,0);
+while(1)
+    if(mya.get_mac(buf, inet_addr("192.168.1.2"))==0)
+    printf("ip->mac:%02x, %02x, %02x", buf[3]& 0xff, buf[4]& 0xff,buf[5]& 0xff);
+
+    //all.nat(0,1);
 
     while(0){
     int tlen = all.recv_all(buf);

@@ -5,6 +5,21 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
+#include<set>
+
+
+class arp_table{
+    public:
+    uint32_t ip;
+    char mac[mac_len];
+
+ int operator<(const  arp_table &a)const{
+    return ip<a.ip;
+ }
+};
+
+
+typedef std::set<arp_table>::iterator arp_iter;
 
 
 class mac_arp : public sock_mac
@@ -33,6 +48,7 @@ class mac_arp : public sock_mac
         uint32_t arp_cheat(std::vector<tar_info> &vec);
         //uint32_t arp_cheat(char * ip);//net sequence
         int get_mac(char *mac, uint32_t ip);
+        int findinarp(uint32_t p, char *mac=NULL);
 
         int scan_ip_arp( std::vector<tar_info> &vec, uint32_t st, uint32_t ed);//net seq
         int scan_ip_arp(std::vector<tar_info> &vec, char * st=NULL, char * ed=NULL);//net seq
@@ -41,10 +57,11 @@ class mac_arp : public sock_mac
         void show_arp(my_arp *p);
         virtual ~mac_arp();
 
+        std::set<arp_table> arp_buf;
+
     protected:
 
     private:
 };
-
 
 #endif // MAC_ARP_H

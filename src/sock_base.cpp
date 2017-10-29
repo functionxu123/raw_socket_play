@@ -5,7 +5,8 @@ local_conf sock_base::local[max_card_num];
 
 sock_base::sock_base(int AF, int type, int proto) {
     socket_m = -1;
-
+    sel_send_card=0;
+    sel_recv_card=0;
     //ctor
     socket_m = socket(AF, type, proto);
     if (socket_m == -1) {
@@ -87,7 +88,7 @@ int sock_base::get_local_info( local_conf p[]) {
                     return -1;
                 }
 
-                p[count].gate = getgateway();
+                p[count].gate = getgateway(p[count].card_name);
 
                 count++;
             }
@@ -160,7 +161,7 @@ void sock_base::form_ip(my_ip *ip, int datalen, int proto,  char *desip, char *s
     ip->super_proto = proto & 0xff;
     ip->des_ip = inet_addr(desip);
     if (srcip == NULL) {
-        ip->src_ip = inet_addr(local[local_conf_valid - 1].ip);
+        ip->src_ip = inet_addr(local[sel_send_card].ip);
     } else {
         ip->src_ip = inet_addr(srcip);
     }
@@ -208,15 +209,15 @@ void sock_base::show_tcp(my_tcp *p) {
 }
 
 uint32_t sock_base::local_ipstart() {//net seq
-    uint32_t mask = htonl(inet_addr(local[local_conf_valid - 1].mask));
-    uint32_t ip = htonl(inet_addr(local[local_conf_valid - 1].ip));
+    uint32_t mask = htonl(inet_addr(local[sel_send_card].mask));
+    uint32_t ip = htonl(inet_addr(local[sel_send_card].ip));
     ip &= mask;
     return htonl(ip);
 }
 
 uint32_t sock_base::local_ipend() {//net seq
-    uint32_t mask = htonl(inet_addr(local[local_conf_valid - 1].mask));
-    uint32_t ip = htonl(inet_addr(local[local_conf_valid - 1].ip));
+    uint32_t mask = htonl(inet_addr(local[sel_send_card].mask));
+    uint32_t ip = htonl(inet_addr(local[sel_send_card].ip));
     ip |= (~mask);
     return htonl(ip);
 }
@@ -281,6 +282,18 @@ int sock_base::my_comp_mac(char *a, char *b, int len) { //1 for same, 0 for not
     return 1;
 }
 
+int sock_base::ifoneofmy_mac(char *p){//-1 for not in , i for in
+    for (int i=0;i<local_conf_valid;i++)
+        if (my_comp_mac(p, local[i].mac)) return i;
+    return -1;
+}
+
+int sock_base::ifoneofmy_ip(uint32_t p){
+    for (int i=0;i<local_conf_valid;i++)
+        if (p==inet_addr(local[i].ip)) return i;
+    return -1;
+}
+
 int sock_base::get_freeport() {
     struct sockaddr_in sin;
     memset(&sin, 0, sizeof(sin));
@@ -311,6 +324,57 @@ int sock_base::get_freeport() {
     if(fd != -1)
         close(fd);
     return port;
+}
+
+int sock_base::set_recv_card(int index){
+    sel_recv_card=index;
+}
+int sock_base::set_send_card(int index){
+    sel_send_card=index;
+}
+
+uint32_t sock_base::getgateway(const char * pNICName)
+{
+    char buffer[200] = { 0 };
+
+    unsigned long bufLen = sizeof(buffer);
+
+    unsigned long defaultRoutePara[4] = { 0 };
+    FILE * pfd = fopen(PATH_ROUTE, "r");
+    if (NULL == pfd){
+        return 0;
+    }
+
+    while (fgets(buffer, bufLen, pfd))
+    {
+        sscanf(buffer, "%*s %x %x %x %*x %*x %*x %x %*x %*x %*x\n", (unsigned int *)&defaultRoutePara[1], (unsigned int *)&defaultRoutePara[0], (unsigned int *)&defaultRoutePara[3], (unsigned int *)&defaultRoutePara[2]);
+
+        if (NULL != strstr(buffer, pNICName))
+        {
+            //如果FLAG标志中有 RTF_GATEWAY
+            if (defaultRoutePara[3] & RTF_GATEWAY)
+            {
+                uint32_t ip = defaultRoutePara[0];
+                //snprintf(pGateway, len, "%d.%d.%d.%d", (ip & 0xff), (ip >> 8) & 0xff, (ip >> 16) & 0xff, (ip >> 24) & 0xff);
+                return ip;
+            }
+        }
+
+        memset(buffer, 0, bufLen);
+    }
+
+    fclose(pfd);
+    pfd = NULL;
+    return 0;
+}
+
+int sock_base::inwhichcard(uint32_t p){
+
+    for (int i=0;i<local_conf_valid; i++){
+            uint32_t tep=inet_addr(local[i].mask);
+        if(  inet_addr(local[i].ip)  & tep == p & tep) return i;
+    }
+    return -1;
 }
 
 sock_base::~sock_base() {

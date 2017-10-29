@@ -19,7 +19,11 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <fcntl.h>
+#include <net/route.h>
 
+
+
+#define PATH_ROUTE ("/proc/net/route")
 
 
 #define max_ether_len ( 1500)
@@ -112,6 +116,10 @@ typedef struct nat_tab{
     int iner_port;
     int out_port;
 }nat_table;
+
+
+
+
 
 static int com_ip(tar_info a, tar_info b) {//no reference in c
     return htonl(a.ip) < htonl(b.ip);

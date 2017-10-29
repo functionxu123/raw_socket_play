@@ -31,7 +31,7 @@ void mac_arp::form_arp(my_arp *p, uint32_t ip_src,  uint32_t ip_des, int op, cha
 
     //get_IP_MAC(NULL, 0, p->src_mac, mac_len);
     if ( mac_src == NULL ) { //mac src
-        memcpy ( p->src_mac, local[local_conf_valid - 1].mac, mac_len );
+        memcpy ( p->src_mac, local[sel_send_card].mac, mac_len );
     } else {
         memcpy ( p->src_mac, mac_src, mac_len );
     }
@@ -98,15 +98,17 @@ int mac_arp::arp_cheat_send(uint32_t start, uint32_t endad ) {//net sequence
     }
 
     form_machd(&mac);
-
+ano:
     while(st <= ed) {
-        if (st == htonl(  inet_addr(   local[local_conf_valid - 1].ip)   )) {
-            st++;    //not my ip
-            continue;
+        for (int ti = 0; ti < local_conf_valid; ti++) {
+            if (st == htonl(  inet_addr(   local[ti].ip)   )) {
+                st++;    //not my ip
+                goto ano;
+            }
         }
 
         uint32_t t = (htonl(st));
-        form_arp(&arp, local[local_conf_valid - 1].gate, t);
+        form_arp(&arp, local[sel_send_card].gate, t);
         if(send_arp(&mac, &arp) <= 0) break;
         //sleep(0.01);
         st++;
@@ -121,7 +123,7 @@ int mac_arp::arp_cheat_send(uint32_t ip, char *des) {
     my_arp arp;
 
     form_machd(&mac, NULL, des);
-    form_arp(&arp, local[local_conf_valid - 1].gate, ip, 2, NULL, des);  //
+    form_arp(&arp, local[ sel_send_card].gate, ip, 2, NULL, des);  //
     return send_arp(&mac, &arp);
 }
 
@@ -148,7 +150,7 @@ int mac_arp::arp_cheat_recv(uint32_t start, uint32_t endd, tar_info *ret) { //ne
     //show_arp(&arp);
     if (ret != NULL)    memcpy(ret->mac, mac.src, mac_len); //
 
-    if (htons(arp.op_type) == 1 && arp.des_ip == local[local_conf_valid - 1].gate) {
+    if (htons(arp.op_type) == 1 && arp.des_ip == local[sel_send_card].gate) {
         uint32_t tp = htonl(arp.src_ip);
         if (tp <= htonl(endd) && tp >= htonl(start)) {
 
@@ -159,7 +161,7 @@ int mac_arp::arp_cheat_recv(uint32_t start, uint32_t endd, tar_info *ret) { //ne
             my_swap_buffer((char *)&arp.des_ip, (char *)&arp.src_ip, sizeof(arp.des_ip));
             //printf("get in once!%s\n",inet_ntoa(i2addr_in(tp)));
             my_swap_buffer((char *)arp.des_mac, (char *)arp.src_mac, sizeof(arp.des_mac));
-            memcpy(arp.src_mac, local[local_conf_valid - 1].mac, sizeof(arp.src_mac));
+            memcpy(arp.src_mac, local[sel_send_card].mac, sizeof(arp.src_mac));
 
             int tttp = send_arp(&mac, &arp);
 
@@ -237,17 +239,42 @@ uint32_t mac_arp::arp_cheat(uint32_t ip) { //net sequence
     return arp_cheat(ip, ip);
 }
 
+int mac_arp::findinarp(uint32_t p, char *mac){
+    for (arp_iter st=arp_buf.begin(); st!=arp_buf.end(); st++){
+        if ((*st).ip==p){
+            if (mac!=NULL)memcpy(mac, (*st).mac, mac_len);
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /*
 return 0 if success, -1 for error, 1 for no reachable
 */
 int mac_arp::get_mac(char *m, uint32_t ip) {
+    if (findinarp(ip, m)) return 0;
+
     my_mac mac;
     my_arp arp;
     tar_info tar;
     int i = 0;
     for (i = 0; i < local_conf_valid; i++) {
         uint32_t tp = inet_addr(local[i].mask);
-        if ((local[i].gate & tp) == (ip & tp)) break;
+        if(ip==inet_addr( local[i].ip)){
+            memcpy(m, local[i].mac, mac_len);
+            return 0;
+        }else if ((  inet_addr( local[i].ip)& tp) == (ip & tp)) {
+            set_send_card(i);
+            break;
+        }
+        //  tp&=ip;
+        //  printf("%s\n", inet_ntoa(i2addr_in (     tp   )));
+        // printf("%s\n", inet_ntoa(i2addr_in(ip & tp)));
+    }
+    if(i == local_conf_valid) {
+        perror("mac_arp:get_mac:can't find net!");
+        return -1;
     }
 
     int pp[2];
@@ -273,6 +300,11 @@ int mac_arp::get_mac(char *m, uint32_t ip) {
                 break;
             } else if(read(pp[0], fbuf, 100) > 0) {
                 memcpy(m, fbuf, mac_len);
+
+                arp_table tep;
+                tep.ip=ip;
+                memcpy(tep.mac, fbuf, mac_len);
+                arp_buf.insert(tep);
                 wait(NULL);
                 return 0;
             } else if(time((time_t*)NULL) - sec_st > 5) { //not reach

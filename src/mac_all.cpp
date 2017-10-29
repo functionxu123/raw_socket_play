@@ -1,5 +1,5 @@
 #include "mac_all.h"
-#include <mac_arp.h>
+
 
 /*
 第三个参数：protocol协议类型一共有四个，意义如下
@@ -40,13 +40,14 @@ int mac_all::send_all(char *buf, int len, int flag) {
     return ret_len;
 }
 
-int mac_all::nat(int iner, int out) {
+int mac_all::nat(uint32_t st, uint32_t ed, int out) {
     char buf[max_ether_len];
     char mac_buf[mac_len];
     nat_table ble;
     nat_ite temp;
 /**/
     mac_arp ar;
+
     if(ar.get_mac(mac_buf, local[out].gate) != 0) {
         perror("mac_all:nat:get gate mac error!");
         return -1;
@@ -56,28 +57,39 @@ int mac_all::nat(int iner, int out) {
 ////////////////////////////////main nat body
     while(1) {
         int tlen = recv_all(buf);
+        int ti;
+        nat_ite ite_t;
+        my_mac *mp = (my_mac*)buf;
 
-        if (caddr.sll_ifindex == local[iner].index) {//get from iner
-
-            my_mac *mp = (my_mac*)buf;
-            if (mp->type == htons(0x800)) { //ip proto
-                //printf("recv:%d\n", tlen);
+        if (ifoneofmy_mac((char *)(mp->des))>=0) {//recv
+            if (mp->type == htons(0x800) ) { //ip proto
                 my_ip*pp = (my_ip*)rid_mac(buf);
-                //show_ip(pp);
 
-                if ((pp->des_ip & inet_addr(local[iner].mask))  == local[iner].gate  ) continue; //iner ip des
+                if (ifoneofmy_ip(pp->des_ip)>=0 && nat_get_port(pp ,&ble)){//in transform layer , if to me
+                    if((ite_t=nat_find(ble.out_port))  != table.end()){//has a map
+                        ///
+                        ti=nat_toiner(buf, ite_t, ar);
+                        if(ti>=0){//can send
+                            set_send_card(ti);
+                            send_all(buf, tlen);//
+                        }
+                    }
+                }else if(nat_get_port(pp ,&ble)){//not to me
+
+                }
+/*
+                //ble.iner_port = nat_get_port(pp);
 
                 ble.ip = pp->src_ip; //record
-
                 pp->src_ip = inet_addr(local[out].ip);
                 memcpy(mp->src, local[out].mac, mac_len);
                 memcpy(mp->des, mac_buf, mac_len);
 
-                ble.iner_port = nat_get_port(pp);
+                //ble.iner_port = nat_get_port(pp);
 
                 if(ble.iner_port) { //validate
                     if ((temp=nat_find(&ble))!=table.end()){//has existed
-                        nat_get_port(pp, (*temp).out_port);//change the src port
+                       // nat_get_port(pp, (*temp).out_port);//change the src port
                     }else{
                         uint16_t opo = get_freeport();
                         nat_get_port(pp, opo);
@@ -91,14 +103,40 @@ int mac_all::nat(int iner, int out) {
                     set_send_card(out);
                     send_all(buf, tlen);//
                 }
+                */
             } else if(mp->type == htons(0x806)) { //arp
             } else if(mp->type == htons(0x86dd)) { //ipv6
             }
-        } else if(caddr.sll_ifindex == local[out].index) { //
-
+        } else{//send
         }
     }
     return 0;
+}
+
+int mac_all::nat_toiner(char *ch, nat_ite p, mac_arp&arp){
+    my_mac *mp = (my_mac*)ch;
+    my_ip*pp = (my_ip*)rid_mac(ch);
+    my_tcp *tc=(my_tcp*)rid_ip((char *)pp);
+
+    char macbuf[mac_len];
+
+    pp->des_ip=(*p).ip;
+    nat_set_dport(pp, (*p).iner_port);
+
+    int tp=inwhichcard(pp->des_ip);
+    if (tp>=0){
+        memcpy(mp->src, local[tp].mac, mac_len);
+
+        if(arp.get_mac(macbuf, pp->des_ip)!=0) return -1;
+        memcpy(mp->des, macbuf, mac_len);
+        checksum_ip_tcp(pp);
+        return tp;
+    }
+    return -1;
+}
+
+int mac_all::nat_toouter(char *ch, nat_ite p){
+
 }
 
 int mac_all::checksum_ip_tcp(my_ip *p){
@@ -145,7 +183,7 @@ nat_ite mac_all::nat_find(uint16_t p){//if out port point to a iner addr
     return st;
 }
 
-int mac_all::nat_get_port(my_ip *p, uint16_t po) {
+int mac_all::nat_get_port(my_ip *p, nat_table*t) {
     my_tcp*tc = (my_tcp*)rid_ip((char *)p);
     switch(p->super_proto) {
     case 1://icmp
@@ -154,9 +192,40 @@ int mac_all::nat_get_port(my_ip *p, uint16_t po) {
         break;
     case 6://tcp
     case 17://udp
-        uint16_t td = tc->src_port;
-        if(po) tc->src_port = po;
-        return td;
+        t->iner_port = tc->src_port;
+        t->out_port=tc->des_port;
+        t->ip=p->src_ip;
+        return 1;
+    }
+    return 0;
+}
+
+uint16_t mac_all::nat_set_sport(my_ip*p, uint16_t port){
+    my_tcp*tc = (my_tcp*)rid_ip((char *)p);
+    switch(p->super_proto) {
+    case 1://icmp
+        break;
+    case 2://igmp
+        break;
+    case 6://tcp
+    case 17://udp
+        tc->src_port=port;
+        return 1;
+    }
+    return 0;
+}
+
+uint16_t mac_all::nat_set_dport(my_ip *p, uint16_t port){
+    my_tcp*tc = (my_tcp*)rid_ip((char *)p);
+    switch(p->super_proto) {
+    case 1://icmp
+        break;
+    case 2://igmp
+        break;
+    case 6://tcp
+    case 17://udp
+        tc->des_port=port;
+        return 1;
     }
     return 0;
 }
