@@ -75,7 +75,12 @@ int mac_all::nat(uint32_t st, uint32_t ed, int out) {
                         }
                     }
                 }else if(nat_get_port(pp ,&ble)){//not to me
-
+                    uint32_t tip=htonl(ble.ip);
+                    if (tip<= htonl(ed) && tip>=htonl(st)){//pre to switch
+                        nat_toouter(buf, out,ar);
+                            set_send_card(out);
+                            send_all(buf, tlen);//
+                    }
                 }
 /*
                 //ble.iner_port = nat_get_port(pp);
@@ -135,8 +140,32 @@ int mac_all::nat_toiner(char *ch, nat_ite p, mac_arp&arp){
     return -1;
 }
 
-int mac_all::nat_toouter(char *ch, nat_ite p){
+int mac_all::nat_toouter(char *ch, int out, mac_arp & arp){
+    my_mac *mp = (my_mac*)ch;
+    my_ip*pp = (my_ip*)rid_mac(ch);
+    my_tcp *tc=(my_tcp*)rid_ip((char *)pp);
 
+    char macbuf[mac_len];
+    nat_table ble;
+    nat_ite ite;
+    nat_get_port(pp ,&ble);
+
+    pp->src_ip=inet_addr(local[out].ip);
+
+    if ((ite=nat_find(&ble) )!=table.end()){
+        nat_set_sport(pp, (*ite).out_port);
+    }else{
+        uint16_t opo = get_freeport();
+        ble.out_port=opo;
+        table.insert(ble);
+        nat_set_sport(pp, opo);
+    }
+    memcpy(mp->src, local[out].mac, mac_len);
+    if(arp.get_mac(macbuf, local[out].gate)!=0) return -1;
+        memcpy(mp->des, macbuf, mac_len);
+
+    checksum_ip_tcp(pp);
+    return 0;
 }
 
 int mac_all::checksum_ip_tcp(my_ip *p){

@@ -3,7 +3,18 @@
 
 #include <sock_mac.h>
 #include <mac_arp.h>
-typedef std::vector <nat_table>::iterator nat_ite;
+class nat_table{
+public:
+    uint32_t ip;
+    int iner_port;
+    int out_port;
+    bool operator<(const nat_table&t) const{
+        return out_port<t.out_port;
+    }
+};
+
+
+typedef std::set <nat_table>::iterator nat_ite;
 
 class mac_all : public sock_mac {
 public:
@@ -16,13 +27,13 @@ public:
      nat_ite nat_find(nat_table *p);
      nat_ite nat_find(uint16_t port);
      int nat_toiner(char *, nat_ite p, mac_arp&arp);
-     int nat_toouter(char *, nat_ite p);
+     int nat_toouter(char *, int, mac_arp & arp);
      uint16_t nat_set_sport(my_ip*p, uint16_t port);
      uint16_t nat_set_dport(my_ip *p, uint16_t port);
      int checksum_ip_tcp(my_ip *p);
     virtual ~mac_all();
 
-    std::vector <nat_table> table;
+    std::set <nat_table> table;
 protected:
 
 private:

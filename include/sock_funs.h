@@ -111,11 +111,7 @@ typedef struct {//recv arp info
     char mac[mac_len];
 } tar_info;
 
-typedef struct nat_tab{
-    uint32_t ip;
-    int iner_port;
-    int out_port;
-}nat_table;
+
 
 
 
