@@ -51,9 +51,6 @@
 		<Unit filename="src/mac_all.cpp" />
 		<Unit filename="src/mac_arp.cpp" />
 		<Unit filename="src/main.cpp" />
-		<Unit filename="src/my_raw.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="src/process_con.cpp" />
 		<Unit filename="src/sock_base.cpp" />
 		<Unit filename="src/sock_mac.cpp" />
