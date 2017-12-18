@@ -342,8 +342,9 @@ int mac_arp::scan_ip_arp(std::vector<tar_info> &vec, uint32_t start, uint32_t en
         while(1) { //
             int cnt = arp_cheat_send(start, endd);
             sleep(cnt / mac_send_persec);
+            printf("scan once!wait for response!\n");
         }
-        // printf("scan done!wait for response!\n");
+
         exit(0);
     } else {//father
         int sec_st = time((time_t*)NULL);
@@ -374,7 +375,15 @@ int mac_arp::scan_ip_arp(std::vector<tar_info> &vec, uint32_t start, uint32_t en
                         }
                         */
             if (time((time_t*)NULL) - sec_st > (htonl(endd) - htonl(start)) / mac_send_persec ) {
-                killpg(fpid, SIGKILL);
+                int status;
+                status=kill(fpid,SIGKILL);
+                if (status == -1)
+                    printf("kill faild\n");
+
+                wait(&status);
+                if(WIFSIGNALED(status))
+                    printf("chile process receive signal %d\n",WTERMSIG(status));
+
                 break;
             }
         }

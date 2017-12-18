@@ -17,8 +17,8 @@ int main() {
     mac_all all;
     char buf[max_ether_len];
 
-    char *ip_st = "10.137.142.0";
-    char *ip_ed = "10.137.142.255";
+    char *ip_st = "192.168.22.0";
+    char *ip_ed = "192.168.22.255";
     //mya.recv_arp(&m, &a);
     char *fake_mac = "\xc0\xee\xfb\xe0\x16\x78"; //194 204
     char *gate_max = "\x60\x0b\x03\x2c\x30\x02";
@@ -37,31 +37,29 @@ int main() {
             //sleep(1);
         }
         */
-
-    uint32_t tepp = mya.local_ipend();
-    //printf("%s\n",inet_ntoa(i2addr_in(tepp)));
-    //mya.arp_cheat(ip_st, ip_ed );
-
-    all.show_netcards();
-    //all.set_recv_card();
- /*   printf("free port:%d\n", all.get_freeport());
-*/
-while(1)
-    if(mya.get_mac(buf, inet_addr("192.168.1.2"))==0)
-    printf("ip->mac:%02x, %02x, %02x", buf[3]& 0xff, buf[4]& 0xff,buf[5]& 0xff);
-
-    //all.nat(0,1);
-
-    while(0){
-    int tlen = all.recv_all(buf);
-            //all.show_mac((my_mac*)buf);
-            my_mac *mp = (my_mac*)buf;
-            my_ip*pp = (my_ip*)all.rid_mac(buf);
-            all.show_ip(pp);
-}
-
-
     /*
+        uint32_t tepp = mya.local_ipend();
+        //printf("%s\n",inet_ntoa(i2addr_in(tepp)));
+        //mya.arp_cheat(ip_st, ip_ed );
+
+        all.show_netcards();
+        //all.set_recv_card();
+
+    while(1)
+        if(mya.get_mac(buf, inet_addr("192.168.1.2"))==0)
+        printf("ip->mac:%02x, %02x, %02x", buf[3]& 0xff, buf[4]& 0xff,buf[5]& 0xff);
+
+        //all.nat(0,1);
+
+        while(0){
+        int tlen = all.recv_all(buf);
+                //all.show_mac((my_mac*)buf);
+                my_mac *mp = (my_mac*)buf;
+                my_ip*pp = (my_ip*)all.rid_mac(buf);
+                all.show_ip(pp);
+    }
+    */
+
     vector<tar_info> pr;
 
     mya.scan_ip_arp(pr, ip_st, ip_ed);//
@@ -75,11 +73,12 @@ while(1)
     }
     printf("size:%d\n", pr.size());
 
+/*
     pid_t pf = fork();
     if (fork < 0) perror("fork error\n");
     else if (!fork)mya.arp_cheat(pr);
     else {
-        all.show_netcards();
+        //all.show_netcards();
         while(1) {
             int tlen = all.recv_all(buf);
             //all.show_mac((my_mac*)buf);
@@ -95,6 +94,6 @@ while(1)
 
         }
     }
-    */
+*/
     return 0;
 }
