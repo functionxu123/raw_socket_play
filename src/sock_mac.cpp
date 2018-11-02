@@ -53,7 +53,7 @@ int sock_mac::set_send_card(int ind) {
 void sock_mac::form_machd ( my_mac *mac, char *src, char *des,  uint16_t type ) {
     mac->type = type;
     if ( des == NULL ) {
-        char mac_cro[mac_len] = BROADCAST_ADDR;
+        unsigned char mac_cro[mac_len] = BROADCAST_ADDR;
         memcpy ( mac->des, mac_cro, mac_len );
     } else {
         memcpy ( mac->des, des, mac_len );
