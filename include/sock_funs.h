@@ -96,6 +96,8 @@ typedef struct fake_hd {
 #pragma pack ()//取消自定义字节对齐方式
 #define ipstr_len 64
 
+
+//保存local网卡信息，可能有多个
 typedef struct {//pc's para
     char ip[ipstr_len];
     char mask[ipstr_len];

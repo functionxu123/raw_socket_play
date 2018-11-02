@@ -83,7 +83,7 @@ public:
 
     static int local_conf_valid;//这是因为类的静态成员变量在使用前必须先初始化。
     static local_conf local[max_card_num];
-        int sel_send_card, sel_recv_card;
+    int sel_send_card, sel_recv_card;
 protected:
 
 
