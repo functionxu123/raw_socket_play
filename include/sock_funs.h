@@ -100,6 +100,7 @@ typedef struct fake_hd {
 //保存local网卡信息，可能有多个
 typedef struct {//pc's para
     char ip[ipstr_len];
+    char ip_broadcast[ipstr_len];
     char mask[ipstr_len];
     uint32_t gate;
     char mac[mac_len];

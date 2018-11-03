@@ -45,45 +45,59 @@
 
 class sock_base {
 public:
-    sock_base(int AF = AF_INET, int type = SOCK_DGRAM, int proto = IPPROTO_IP);
+    sock_base (int AF = AF_INET, int type = SOCK_DGRAM, int proto = IPPROTO_IP);
     //
     virtual ~sock_base();
-    int get_local_info( local_conf p[]);
 
-    int get_socket();
-    void setsocket(int p);
-    uint16_t checksum(uint16_t* buffer, int size);//this size is char size
+    uint16_t checksum (uint16_t* buffer, int size); //this size is char size
 
-    void form_ip(my_ip *ip, int datalen, int proto,  char *desip, char *srcip = NULL, int head_len = 20, int version = 4);
-    void form_tcp(my_tcp *tcp, char *data, int data_len, char *src_ip, char *des_ip, int src_port, int des_port, int seq, int ack, char flag, int hd_len = 20, int win_size = max_ether_len);
-    void show_ip(my_ip *p);
-    void show_tcp(my_tcp *p);
+
+    void setsocket (int p);
+    void form_ip (my_ip *ip, int datalen, int proto,  char *desip, char *srcip = NULL, int head_len = 20, int version = 4);
+    void form_tcp (my_tcp *tcp, char *data, int data_len, char *src_ip, char *des_ip, int src_port, int des_port, int seq, int ack, char flag, int hd_len = 20, int win_size = max_ether_len);
+    void show_ip (my_ip *p);
+    void show_tcp (my_tcp *p);
+    void show_netcards();
+    void my_swap_buffer (char *p1, char *p2, int len);
 
     uint32_t local_ipstart();//net_sequence
     uint32_t local_ipend();//net sequence
     uint32_t getgateway();
-    uint32_t getgateway(const char * pNICName);
-    uint32_t getmyip(int index=local_conf_valid-1);
+    uint32_t getgateway (const char * pNICName);
+    uint32_t getmyip (int index = local_conf_valid - 1);
 
-    void show_netcards();
 
-    char *rid_ip(char *p, my_ip*ip=NULL);
-    char *rid_tcp(char *p, my_tcp *tcp=NULL);
-    void my_swap_buffer(char *p1, char *p2, int len);
-    int my_comp_mac(char *a, char *b, int len = mac_len);
-    virtual int set_recv_card(int index=local_conf_valid-1);
-    virtual int set_send_card(int index=local_conf_valid-1);
-    int ifoneofmy_mac(char *p);
-    int ifoneofmy_ip(uint32_t p);
-    int inwhichcard(uint32_t p);
+    char *rid_ip (char *p, my_ip*ip = NULL);
+    char *rid_tcp (char *p, my_tcp *tcp = NULL);
 
+
+    int get_local_info (local_conf p[]);
+    int get_socket();
+    int my_comp_mac (char *a, char *b, int len = mac_len);
+    int ifoneofmy_mac (char *p);
+    int ifoneofmy_ip (uint32_t p);
+    int inwhichcard (uint32_t p);
     int get_freeport();
+    int ioctl_get_index (struct ifreq * ifr);
+    int ioctl_get_mac (struct ifreq * ifr);
+    int ioctl_get_mask (struct ifreq * ifr);
+    int ioctl_get_ip (struct ifreq * ifr);
+    int ioctl_get_broadcast (struct ifreq * ifr);
 
+
+    virtual int set_recv_card (int index = local_conf_valid - 1);
+    virtual int set_send_card (int index = local_conf_valid - 1);
+
+//************************************************************************//
     struct sockaddr_in host_addr, client_addr;
 
     static int local_conf_valid;//这是因为类的静态成员变量在使用前必须先初始化。
     static local_conf local[max_card_num];
+
     int sel_send_card, sel_recv_card;
+
+
+//************************************************************************//
 protected:
 
 
