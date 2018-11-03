@@ -259,14 +259,14 @@ void sock_base::setsocket (int p) {
     socket_m = p;
 }
 
-uint16_t sock_base::checksum (uint16_t* buffer, int size) {   //this size is char size
+uint16_t sock_base::checksum (uint16_t* buffer, int size) {   //this size is char size(1Byte),not uint16_t(2Byte)
     unsigned long cksum = 0;
-//每16位相加
+    //每16位相加
     while (size > 1)    {
         cksum += *buffer++;
         size -= sizeof (uint16_t);
     }
-//最后的奇数字节
+    //最后的奇数字节
     if (size)    {
         cksum += * (uint8_t*) buffer;
     }
