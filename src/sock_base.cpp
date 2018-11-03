@@ -43,9 +43,11 @@ int sock_base::get_local_info( local_conf p[]) {
     char szMac[64];
     int count = 0;
     for (; it != end; ++it) {
+        //char *strcpy(char* dest, const char *src)
+        //将name考到ifr里面去，后面查询用
         strcpy(ifr.ifr_name, it->ifr_name);
 
-        if (ioctl(sock, SIOCGIFFLAGS, &ifr) == 0) {
+        if (ioctl(sock, SIOCGIFFLAGS, &ifr) == 0) {//查询flag
             if (   (! (ifr.ifr_flags & IFF_LOOPBACK))  && (ifr.ifr_flags & IFF_UP)   ) { // don't count loopback,避免记录环路,仅仅记录up状态的
 
                 strcpy( (p[count]).card_name, it->ifr_name);
@@ -234,32 +236,7 @@ char *sock_base::rid_tcp(char *p, my_tcp *tcp) {
     return p + (((tp->hdlen_flag) & 0xf0) >> 2);
 }
 
-uint32_t sock_base::getgateway() {
-    FILE *fp;
-    char buf[512];
-    char cmd[128];
-    char gateway[30];
-    char *tmp;
 
-    strcpy(cmd, "ip route");//run ip route command
-    fp = popen(cmd, "r");
-    if(NULL == fp) {
-        perror("popen error");
-        return -1;
-    }
-    while(fgets(buf, sizeof(buf), fp) != NULL) {
-        tmp = buf;
-        while(*tmp && (*tmp == ' ') )
-            ++ tmp;
-        if(strncmp(tmp, "default", strlen("default")) == 0)
-            break;
-    }
-    sscanf(buf, "%*s%*s%s", gateway);
-    //printf("default gateway:%s\n", gateway);
-    pclose(fp);
-
-    return inet_addr(gateway);
-}
 
 uint32_t sock_base::getmyip(int index) {
     return inet_addr(local[index].ip);
@@ -331,6 +308,33 @@ int sock_base::set_recv_card(int index){
 }
 int sock_base::set_send_card(int index){
     sel_send_card=index;
+}
+
+uint32_t sock_base::getgateway() {
+    FILE *fp;
+    char buf[512];
+    char cmd[128];
+    char gateway[30];
+    char *tmp;
+
+    strcpy(cmd, "ip route");//run ip route command
+    fp = popen(cmd, "r");
+    if(NULL == fp) {
+        perror("popen error");
+        return -1;
+    }
+    while(fgets(buf, sizeof(buf), fp) != NULL) {
+        tmp = buf;
+        while(*tmp && (*tmp == ' ') )
+            ++ tmp;
+        if(strncmp(tmp, "default", strlen("default")) == 0)
+            break;
+    }
+    sscanf(buf, "%*s%*s%s", gateway);
+    //printf("default gateway:%s\n", gateway);
+    pclose(fp);
+
+    return inet_addr(gateway);
 }
 
 uint32_t sock_base::getgateway(const char * pNICName)
