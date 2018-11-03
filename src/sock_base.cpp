@@ -21,6 +21,8 @@ sock_base::sock_base(int AF, int type, int proto) {
         if (local_conf_valid <= 0) {
             perror("There is no network card available!");
             exit(1);
+        }else{
+            show_netcards();
         }
     }
 }
@@ -100,6 +102,69 @@ int sock_base::get_local_info( local_conf p[]) {
         }
     }
     return count;
+}
+
+
+uint32_t sock_base::getgateway() {
+    FILE *fp;
+    char buf[512];
+    char cmd[128];
+    char gateway[30];
+    char *tmp;
+
+    strcpy(cmd, "ip route");//run ip route command
+    fp = popen(cmd, "r");
+    if(NULL == fp) {
+        perror("popen error");
+        return -1;
+    }
+    while(fgets(buf, sizeof(buf), fp) != NULL) {
+        tmp = buf;
+        while(*tmp && (*tmp == ' ') )
+            ++ tmp;
+        if(strncmp(tmp, "default", strlen("default")) == 0)
+            break;
+    }
+    sscanf(buf, "%*s%*s%s", gateway);
+    //printf("default gateway:%s\n", gateway);
+    pclose(fp);
+
+    return inet_addr(gateway);
+}
+
+uint32_t sock_base::getgateway(const char * pNICName)
+{
+    char buffer[200] = { 0 };
+
+    unsigned long bufLen = sizeof(buffer);
+
+    unsigned long defaultRoutePara[4] = { 0 };
+    FILE * pfd = fopen(PATH_ROUTE, "r");
+    if (NULL == pfd){
+        return 0;
+    }
+
+    while (fgets(buffer, bufLen, pfd))
+    {
+        sscanf(buffer, "%*s %x %x %x %*x %*x %*x %x %*x %*x %*x\n", (unsigned int *)&defaultRoutePara[1], (unsigned int *)&defaultRoutePara[0], (unsigned int *)&defaultRoutePara[3], (unsigned int *)&defaultRoutePara[2]);
+
+        if (NULL != strstr(buffer, pNICName))
+        {
+            //如果FLAG标志中有 RTF_GATEWAY
+            if (defaultRoutePara[3] & RTF_GATEWAY)
+            {
+                uint32_t ip = defaultRoutePara[0];
+                //snprintf(pGateway, len, "%d.%d.%d.%d", (ip & 0xff), (ip >> 8) & 0xff, (ip >> 16) & 0xff, (ip >> 24) & 0xff);
+                return ip;
+            }
+        }
+
+        memset(buffer, 0, bufLen);
+    }
+
+    fclose(pfd);
+    pfd = NULL;
+    return 0;
 }
 
 void sock_base::show_netcards() {
@@ -310,67 +375,6 @@ int sock_base::set_send_card(int index){
     sel_send_card=index;
 }
 
-uint32_t sock_base::getgateway() {
-    FILE *fp;
-    char buf[512];
-    char cmd[128];
-    char gateway[30];
-    char *tmp;
-
-    strcpy(cmd, "ip route");//run ip route command
-    fp = popen(cmd, "r");
-    if(NULL == fp) {
-        perror("popen error");
-        return -1;
-    }
-    while(fgets(buf, sizeof(buf), fp) != NULL) {
-        tmp = buf;
-        while(*tmp && (*tmp == ' ') )
-            ++ tmp;
-        if(strncmp(tmp, "default", strlen("default")) == 0)
-            break;
-    }
-    sscanf(buf, "%*s%*s%s", gateway);
-    //printf("default gateway:%s\n", gateway);
-    pclose(fp);
-
-    return inet_addr(gateway);
-}
-
-uint32_t sock_base::getgateway(const char * pNICName)
-{
-    char buffer[200] = { 0 };
-
-    unsigned long bufLen = sizeof(buffer);
-
-    unsigned long defaultRoutePara[4] = { 0 };
-    FILE * pfd = fopen(PATH_ROUTE, "r");
-    if (NULL == pfd){
-        return 0;
-    }
-
-    while (fgets(buffer, bufLen, pfd))
-    {
-        sscanf(buffer, "%*s %x %x %x %*x %*x %*x %x %*x %*x %*x\n", (unsigned int *)&defaultRoutePara[1], (unsigned int *)&defaultRoutePara[0], (unsigned int *)&defaultRoutePara[3], (unsigned int *)&defaultRoutePara[2]);
-
-        if (NULL != strstr(buffer, pNICName))
-        {
-            //如果FLAG标志中有 RTF_GATEWAY
-            if (defaultRoutePara[3] & RTF_GATEWAY)
-            {
-                uint32_t ip = defaultRoutePara[0];
-                //snprintf(pGateway, len, "%d.%d.%d.%d", (ip & 0xff), (ip >> 8) & 0xff, (ip >> 16) & 0xff, (ip >> 24) & 0xff);
-                return ip;
-            }
-        }
-
-        memset(buffer, 0, bufLen);
-    }
-
-    fclose(pfd);
-    pfd = NULL;
-    return 0;
-}
 
 int sock_base::inwhichcard(uint32_t p){
 
