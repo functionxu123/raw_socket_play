@@ -4,7 +4,7 @@
 #include <set>
 using namespace std;
 
-#include <sock_funs.h>
+#include "sock_funs.h"
 #include <sock_base.h>
 #include <mac_arp.h>
 #include <mac_all.h>
@@ -63,9 +63,6 @@ int main() {
 
     vector<tar_info> pr;
 
-    mya.test_checksum();
-
-    return 0;
 
     mya.scan_ip_arp(pr, ip_st, ip_ed);//
     //mya.arp_cheat(ip_st, ip_ed);

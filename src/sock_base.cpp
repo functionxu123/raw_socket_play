@@ -285,7 +285,7 @@ uint16_t sock_base::checksum (uint16_t* buffer, int size) {   //this size is cha
         cksum = (cksum >> 16) + (cksum & 0xffff);     //将高16bit与低16bit相加
         //cksum += (cksum >> 16);
     }                        //将进位到高位的16bit与低16bit 再相加,确保高16位为0
-    return ( (uint16_t) (~cksum));    //最后将结果取反,得到checksum,转化为网络顺序
+    return ( (uint16_t) (~cksum));    //最后将结果取反,得到checksum
 }
 
 void sock_base::test_checksum() {
