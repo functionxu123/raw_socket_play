@@ -23,6 +23,7 @@ int main() {
     char *fake_mac = "\xc0\xee\xfb\xe0\x16\x78"; //194 204
     char *gate_max = "\x60\x0b\x03\x2c\x30\x02";
 
+
     /*
         while(1) {
             while(st != 0xffffffff) {
@@ -61,6 +62,10 @@ int main() {
     */
 
     vector<tar_info> pr;
+
+    mya.test_checksum();
+
+    return 0;
 
     mya.scan_ip_arp(pr, ip_st, ip_ed);//
     //mya.arp_cheat(ip_st, ip_ed);

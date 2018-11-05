@@ -259,7 +259,13 @@ void sock_base::setsocket (int p) {
     socket_m = p;
 }
 
+int sock_base::check_endin(){
+    int i = 1;
+    return *(char*)&i;   //返回1 是小端 否则大端
+}
+
 uint16_t sock_base::checksum (uint16_t* buffer, int size) {   //this size is char size(1Byte),not uint16_t(2Byte)
+
     unsigned long cksum = 0;
     //每16位相加
     while (size > 1)    {
@@ -267,12 +273,38 @@ uint16_t sock_base::checksum (uint16_t* buffer, int size) {   //this size is cha
         size -= sizeof (uint16_t);
     }
     //最后的奇数字节
-    if (size)    {
-        cksum += * (uint8_t*) buffer;
+    if (size){
+        if (check_endin()==1)   cksum += * (uint8_t*) buffer;
+        else {
+                //printf("big endin detected!\n");
+                int tep=(* (uint8_t*) buffer);
+                cksum += tep<<8;
+        }
     }
-    cksum = (cksum >> 16) + (cksum & 0xffff);     //将高16bit与低16bit相加
-    cksum += (cksum >> 16);                           //将进位到高位的16bit与低16bit 再相加,确保高16位为0
-    return (uint16_t) (~cksum);     //最后将结果取反,得到checksum
+    while (cksum >> 16) {
+        cksum = (cksum >> 16) + (cksum & 0xffff);     //将高16bit与低16bit相加
+        //cksum += (cksum >> 16);
+    }                        //将进位到高位的16bit与低16bit 再相加,确保高16位为0
+    return ( (uint16_t) (~cksum));    //最后将结果取反,得到checksum,转化为网络顺序
+}
+
+void sock_base::test_checksum() {
+
+    printf ("size of my ip:%d\n", sizeof (struct my_ip));
+    unsigned char tep[] = { 0x45, 0x00, 0x00, 0x31, 0x89, 0xF5, 0x00, 0x00, 0x6E, 0x06, 0x00, 0x00, 0xDE, 0xB7, 0x45, 0x5D, 0xC0, 0xA8, 0x00, 0xDC, 0xaa};
+
+    int len=sizeof(tep);
+
+    for (int i = 0; i < len; ++i) printf ("0x%x ", tep[i]);
+
+    uint16_t t = checksum ( (uint16_t*) tep, len);
+    printf ("cal chedksum:0x%x\n", t);
+
+    my_ip* ip = (my_ip*) tep;
+    ip->check_sum = t;
+    for (int i = 0; i < len; ++i) printf ("0x%x ", tep[i]);
+
+    printf ("add and check:0x%x\n", checksum ( (uint16_t*) tep, len));
 }
 /*
 

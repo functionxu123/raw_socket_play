@@ -59,6 +59,7 @@ public:
     void show_tcp (my_tcp *p);
     void show_netcards();
     void my_swap_buffer (char *p1, char *p2, int len);
+    void test_checksum();
 
     uint32_t local_ipstart();//net_sequence
     uint32_t local_ipend();//net sequence
@@ -83,6 +84,7 @@ public:
     int ioctl_get_mask (struct ifreq * ifr);
     int ioctl_get_ip (struct ifreq * ifr);
     int ioctl_get_broadcast (struct ifreq * ifr);
+    int check_endin();
 
 
     virtual int set_recv_card (int index = local_conf_valid - 1);
